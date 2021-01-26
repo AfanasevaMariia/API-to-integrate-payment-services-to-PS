@@ -1,7 +1,3 @@
-# MIR-Cloud-Services
+# MIR-Core
 
-Общий проектный GitHub репозиторий сервисов:
-1. MirLinks
-2. MirFit
-3. MirFundraising
-3. Ядро ПС МИР
+Проектный репозиторий Ядра Платёжной Системы МИР.
