@@ -40,8 +40,8 @@ public class MessageService implements IMessageService{
         repository.deleteById(id);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void updateMessage(Integer id, String text) {
         if(text == null || text.isEmpty())
             throw new IllegalStateException("Text of message cannot be null or empty");
