@@ -20,13 +20,13 @@ public class MessageController {
     }
 
     @GetMapping
-    public List<Message> getStudents() {
+    public List<Message> getMessages() {
         return service.getMessages();
     }
 
     @PostMapping
-    public void addMessage(@RequestBody Message student) {
-        service.addMessage(student);
+    public void addMessage(@RequestBody Message message) {
+        service.addMessage(message);
     }
 
     @DeleteMapping(path = "{id}")
