@@ -1,13 +1,12 @@
 package com.example.demo.formatters;
 
-import com.example.demo.models.*;
+import com.example.demo.entities.*;
 import com.imohsenb.ISO8583.builders.ISOMessageBuilder;
 import com.imohsenb.ISO8583.entities.ISOMessage;
 import com.imohsenb.ISO8583.enums.FIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -51,18 +50,18 @@ public class Encoder {
     */
     public EncodedMessage getEncodedMessage(ParsedMessage parsedMessage) throws ISOException {
         StringBuilder message = new StringBuilder();
-        message.append(parsedMessage.header);
-        message.append(parsedMessage.mti);
+        message.append(parsedMessage.getHeader());
+        message.append(parsedMessage.getMti());
         // Formation of the primaryBitmap and extracting of the hex bodies of fields into the content.
         byte[] primaryBitmap = new byte[64];
         StringBuilder content = new StringBuilder();
-        HashMap<Integer, ParsedField> parsedFields = parsedMessage.fields;
+        HashMap<Integer, ParsedField> parsedFields = parsedMessage.getFields();
         for (Integer id : parsedFields.keySet()) {
             ParsedField parsedField = parsedFields.get(id);
             // Marking of the bit.
             primaryBitmap[id - 1] = 1;
             // Addition of the length prefix.
-            FIELDS fieldImage = FIELDS.valueOf(parsedField.id);
+            FIELDS fieldImage = FIELDS.valueOf(parsedField.getId());
             if (!fieldImage.isFixed()) {
                 content.append(parsedField.getFieldLengthStr());
             }
@@ -98,41 +97,41 @@ public class Encoder {
      */
     private ParsedMessage getParsedMessage(ISOMessage isoMessage) throws ISOException {
         ParsedMessage parsedMessage = new ParsedMessage();
-        parsedMessage.header = StringUtil.fromByteArray(isoMessage.getHeader());
-        parsedMessage.mti = isoMessage.getMti();
+        parsedMessage.setHeader(StringUtil.fromByteArray(isoMessage.getHeader()));
+        parsedMessage.setMti(isoMessage.getMti());
         // Fulling of the parsedMessage by parsedFields.
         // The first element means the presence of the secondaryBitmap
         // which is not used in this project.
         for (int numField = 2; numField < 64 + 1; numField++) {
             ParsedField parsedField = new ParsedField();
-            parsedField.id = numField;
+            parsedField.setId(numField);
             // Getting of the type of the data keeping in the field.
-            parsedField.type = FIELDS.valueOf(numField).getType();
+            parsedField.setType(FIELDS.valueOf(numField).getType());
             // Extracting of the body of the field.
             try {
-                parsedField.body = isoMessage.getStringField(numField, true);
-                System.out.println("parsedField.body = " + parsedField.body);
+                parsedField.setBody(isoMessage.getStringField(numField, true));
+                System.out.println("parsedField.body = " + parsedField.getBody());
                 // This field is not present in this message.
             } catch (ISOException ex) {
                 System.out.println("Field with the number " + numField + " was omitted.");
                 continue;
             }
             // If the field has elements.
-            if (FIELDS_WITH_ELEMENTS.isBelong(parsedField.id)) {
-                parsedField.hasElements = true;
-                parsedField.elements = parseField(parsedField);
+            if (FIELDS_WITH_ELEMENTS.isBelong(parsedField.getId())) {
+                parsedField.setHasElements(true);
+                parsedField.setElements(parseField(parsedField));
 
                 // Print!
-                HashMap<Integer, Element> elements = parsedField.elements;
+                HashMap<Integer, ParsedElement> elements = parsedField.getElements();
                 Set keys = elements.keySet();
                 System.out.println("elements:");
                 for (Object key : keys) {
                     System.out.println("\telem:");
-                    Element element = elements.get((Integer)key);
-                    System.out.println("\t\tid = " + element.id);
-                    System.out.println("\t\ttype = " + element.getType());
-                    System.out.println("\t\tlength = " + element.length);
-                    System.out.println("\t\tbody = " + element.body);
+                    ParsedElement parsedElement = elements.get((Integer)key);
+                    System.out.println("\t\tid = " + parsedElement.getId());
+                    System.out.println("\t\ttype = " + parsedElement.getType());
+                    System.out.println("\t\tlength = " + parsedElement.getLength());
+                    System.out.println("\t\tbody = " + parsedElement.getBody());
                 }
             }
             // Adding of the new parsedField to the parsedMessage.
@@ -144,26 +143,26 @@ public class Encoder {
     /*
     Returns the HashMap of the elements of the field if it has these.
      */
-    private HashMap<Integer, Element> parseField(ParsedField parsedField) throws ISOException {
-        if (!parsedField.hasElements)
+    private HashMap<Integer, ParsedElement> parseField(ParsedField parsedField) throws ISOException {
+        if (!parsedField.getHasElements())
             throw new ISOException("Field has no elements!");
-        HashMap<Integer, Element> elements = new HashMap<Integer, Element>();
-        String bodyField = parsedField.body;
+        HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
+        String bodyField = parsedField.getBody();
         // Formation of the elements.
         int indSym = 0;
         while (indSym < bodyField.length()) {
-            Element element = new Element();
-            // The type of an element takes 0 positions.
-            element.setType(bodyField.substring(indSym, indSym + 1));
-            // The id of an element takes 1-2 positions.
-            element.id = Integer.parseInt(bodyField.substring(indSym + 1, indSym + 3), 16);
-            // The length of an element takes 3-4 positions.
-            element.length = Integer.parseInt(bodyField.substring(indSym + 3, indSym + 5), 16);
-            // The body of an element takes positions begin at the 5th.
-            element.body = bodyField.substring(indSym + 5, indSym + 5 + element.length);
-            // The offset of the indSym to make it the first index of the next element.
-            indSym += 5 + element.length;
-            elements.put(element.id, element);
+            ParsedElement parsedElement = new ParsedElement();
+            // The type of an parsedElement takes 0 positions.
+            parsedElement.setType(bodyField.substring(indSym, indSym + 1));
+            // The id of an parsedElement takes 1-2 positions.
+            parsedElement.setId(Integer.parseInt(bodyField.substring(indSym + 1, indSym + 3), 16));
+            // The length of an parsedElement takes 3-4 positions.
+            parsedElement.setLength(Integer.parseInt(bodyField.substring(indSym + 3, indSym + 5), 16));
+            // The body of an parsedElement takes positions begin at the 5th.
+            parsedElement.setBody(bodyField.substring(indSym + 5, indSym + 5 + parsedElement.getLength()));
+            // The offset of the indSym to make it the first index of the next parsedElement.
+            indSym += 5 + parsedElement.getLength();
+            elements.put(parsedElement.getId(), parsedElement);
         }
         return elements;
     }

@@ -1,8 +1,7 @@
-package com.example.demo.models;
+package com.example.demo.entities;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /*

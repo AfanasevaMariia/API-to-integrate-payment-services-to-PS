@@ -1,22 +1,19 @@
-package com.example.demo.models;
+package com.example.demo.entities;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.imohsenb.ISO8583.enums.FIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 
-import java.util.Iterator;
-
 @JsonAutoDetect
 @NoArgsConstructor
-public class Element {
+public class ParsedElement {
+
     @JsonIgnore
     // ^ (0x5E) – means that symbols in the field (not object Field!) of the data
     // of an element are represented by ASCII.
     public final static String separatorSym = "^";
-
     @JsonIgnore
     // % (0x25) means that binary data in the field (not object Field!) of an element
     // are represented by bytes 8 bits each.
@@ -25,11 +22,16 @@ public class Element {
     // Binary data or ASCII symbols.
     private String type;
     // From 01 to ZZ in the hex system.
-    public int id;
+    private int id;
     // The length of the direct content without the type, the id, the length.
-    public int length;
+    private int length;
     // Content.
-    public String body;
+    private String body;
+
+    // Getters and Setters.
+    public String getType() {
+        return type;
+    }
 
     public void setType(String dataFormat) throws ISOException {
         if (dataFormat.compareTo(separatorSym) == 0)
@@ -42,9 +44,30 @@ public class Element {
         }
     }
 
-    public String getType() {
-        return type;
+    public int getId() {
+        return id;
     }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+    // The end of the Getters and Setters.
 
     @JsonIgnore
     public String getHexString() throws ISOException {
@@ -56,7 +79,7 @@ public class Element {
             if (type.compareTo(separatorBin) == 0)
                 elementStr.append("25");
             else
-                throw new ISOException("Element has not a type!");
+                throw new ISOException("ParsedElement has not a type!");
         }
         // The id.
         String idStr = StringUtil.asciiToHex(Integer.toString(id));
@@ -103,5 +126,4 @@ public class Element {
         elementStr.append(body);
         return elementStr.toString();
     }
-
 }

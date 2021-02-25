@@ -1,9 +1,9 @@
 package com.example.demo.routing;
 
 import com.example.demo.formatters.Encoder;
-import com.example.demo.models.EncodedMessage;
-import com.example.demo.models.ParsedField;
-import com.example.demo.models.ParsedMessage;
+import com.example.demo.entities.EncodedMessage;
+import com.example.demo.entities.ParsedField;
+import com.example.demo.entities.ParsedMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 
@@ -17,11 +17,9 @@ public class Router {
 	Returns the String which is the parsedMessage in the JSON format.
 	The parsedMessage is given from an encodedMessage (in the JSON format too).
 	 */
-    public static String processParseRequest(String encodedMessageJSON) throws IOException, ISOException {
-        // Deserialization of the encodedMessage.
-        StringReader reader = new StringReader(encodedMessageJSON);
-        ObjectMapper mapper = new ObjectMapper();
-        EncodedMessage encodedMessage = mapper.readValue(reader, EncodedMessage.class);
+    public static ParsedMessage getParsedMessage(String encodedMessageJSON) throws IOException, ISOException {
+        // Getting of the encodedMessage.
+        EncodedMessage encodedMessage = extractEncodedMessage(encodedMessageJSON);
         // Formation of the parsedMessage.
         Encoder encoder = new Encoder();
         ParsedMessage parsedMessage = encoder.getParsedMessage(encodedMessage);
@@ -29,22 +27,25 @@ public class Router {
         // Print for debugging.
         printParsedMessage(parsedMessage);
 
-        // Serialization of the parsedMessage.
-        StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, parsedMessage);
-        String parsedMessageJSON = writer.toString();
-        return parsedMessageJSON;
+        return parsedMessage;
+    }
+
+    /*
+    Returns the encodedMessage extracted from the JSON format.
+     */
+    public static EncodedMessage extractEncodedMessage(String encodedMessageJSON) throws IOException {
+        // Deserialization of the encodedMessage.
+        StringReader reader = new StringReader(encodedMessageJSON);
+        ObjectMapper mapper = new ObjectMapper();
+        EncodedMessage encodedMessage = mapper.readValue(reader, EncodedMessage.class);
+        return encodedMessage;
     }
 
     /*
     Returns the String which is the encodedMessage in the JSON format.
-	The encodedMessage is given from a parsedMessage (in the JSON format too).
+	The encodedMessage is given from a parsedMessage.
      */
-    public static String processEncodeRequest(String parsedMessageJSON) throws IOException, ISOException {
-        // Deserialization of the parsedMessageJSON in the parsedMessage.
-        StringReader reader = new StringReader(parsedMessageJSON);
-        ObjectMapper mapper = new ObjectMapper();
-        ParsedMessage parsedMessage = mapper.readValue(reader, ParsedMessage.class);
+    public static String formEncodedMessage(ParsedMessage parsedMessage) throws IOException, ISOException {
         // Formation of the encodedMessage.
         Encoder encoder = new Encoder();
         EncodedMessage encodedMessage = encoder.getEncodedMessage(parsedMessage);
@@ -54,6 +55,7 @@ public class Router {
 
         // Serialization of the encodedMessage.
         StringWriter writer = new StringWriter();
+        ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(writer, encodedMessage);
         String encodedMessageJSON = writer.toString();
         return encodedMessageJSON;
@@ -64,13 +66,13 @@ public class Router {
 	 */
     static void printParsedMessage(ParsedMessage parsedMessage) {
         System.out.println("parsedMessage:");
-        System.out.println("mti = " + parsedMessage.mti);
+        System.out.println("mti = " + parsedMessage.getMti());
         System.out.println("folders:");
-        for (ParsedField parsedField : parsedMessage.fields.values()) {
+        for (ParsedField parsedField : parsedMessage.getFields().values()) {
             System.out.println("\tfield:");
-            System.out.println("\t\tid = " + parsedField.id);
-            System.out.println("\t\ttype = " + parsedField.type);
-            System.out.println("\t\tbody = " + parsedField.body);
+            System.out.println("\t\tid = " + parsedField.getId());
+            System.out.println("\t\ttype = " + parsedField.getType());
+            System.out.println("\t\tbody = " + parsedField.getBody());
         }
     }
 

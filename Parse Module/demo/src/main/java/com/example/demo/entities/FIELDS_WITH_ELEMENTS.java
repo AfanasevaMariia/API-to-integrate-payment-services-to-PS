@@ -1,7 +1,4 @@
-package com.example.demo.models;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.imohsenb.ISO8583.enums.FIELDS;
+package com.example.demo.entities;
 
 import java.util.HashMap;
 import java.util.Map;

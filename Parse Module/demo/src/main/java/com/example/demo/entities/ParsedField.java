@@ -1,4 +1,4 @@
-package com.example.demo.models;
+package com.example.demo.entities;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,11 +12,54 @@ import java.util.HashMap;
 @JsonAutoDetect
 @NoArgsConstructor
 public class ParsedField {
-    public int id;
-    public String type;
-    public String body;
-    public boolean hasElements = false;
-    public HashMap<Integer, Element> elements = new HashMap<Integer, Element>();
+
+    private int id;
+    private String type;
+    private String body;
+    private boolean hasElements = false;
+    private HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
+
+    // Getters and Setters.
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public boolean getHasElements() {
+        return this.hasElements;
+    }
+
+    public void setHasElements(boolean hasElements) {
+        this.hasElements = hasElements;
+    }
+
+    public HashMap<Integer, ParsedElement> getElements() {
+        return elements;
+    }
+
+    public void setElements(HashMap<Integer, ParsedElement> elements) {
+        this.elements = elements;
+    }
+    // The end of the Getters and Setters.
 
     @JsonIgnore
     public String getBodyOrElementsHexStr() throws ISOException {

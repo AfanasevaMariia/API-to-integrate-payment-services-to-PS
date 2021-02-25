@@ -1,6 +1,7 @@
 
 package com.example.demo;
-import com.example.demo.models.EncodedMessage;
+import com.example.demo.entities.EncodedMessage;
+import com.example.demo.entities.ParsedMessage;
 import com.example.demo.routing.Router;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imohsenb.ISO8583.builders.ISOMessageBuilder;
@@ -88,13 +89,19 @@ public class CoreFormatterModuleApplication {
 		// For parsing.
 		// Like we has accepted this from the routing module.
 		String encodedMessageJSONFromService = encodedMessageJSON;
-		Router roгter = new Router();
+		Router router = new Router();
 		// This is that will be sent to routing module back.
-		String parsedMessageJSON = roгter.processParseRequest(encodedMessageJSONFromService);
+		// The extracting of the encodedMessage from the transmitted JSON string.
+		EncodedMessage encodedMessage = router.extractEncodedMessage(encodedMessageJSONFromService);
+		ParsedMessage parsedMessage = router.getParsedMessage(encodedMessageJSONFromService);
+
+		// The serialization for debugging.
+		writer = new StringWriter();
+		mapper.writeValue(writer, parsedMessage);
 
 		// For encoding.
-		String parsedMessageJSON2 = parsedMessageJSON;
-		String encodedMessageJSON2 = roгter.processEncodeRequest(parsedMessageJSON2);
+		String parsedMessageJSON2 = writer.toString();
+		String encodedMessageJSON2 = router.formEncodedMessage(parsedMessage);
 		// ----------------------------------------------------------------------------------------
 	}
 
