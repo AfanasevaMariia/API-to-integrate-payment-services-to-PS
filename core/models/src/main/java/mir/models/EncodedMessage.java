@@ -10,7 +10,7 @@ Supposes a header.
 @JsonAutoDetect
 @NoArgsConstructor
 public class EncodedMessage {
-    @JsonProperty("Message")
+    @JsonProperty("ParsedMessage")
     // Consists hex symbols.
     public String message;
 }

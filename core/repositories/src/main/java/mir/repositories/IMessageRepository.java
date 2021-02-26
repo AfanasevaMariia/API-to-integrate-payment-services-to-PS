@@ -1,9 +1,9 @@
 package mir.repositories;
 
+import mir.models.ParsedMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
-import mir.models.Message;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface IMessageRepository extends JpaRepository<Message, Integer> {
+public interface IMessageRepository extends JpaRepository<ParsedMessage, Integer> {
 }

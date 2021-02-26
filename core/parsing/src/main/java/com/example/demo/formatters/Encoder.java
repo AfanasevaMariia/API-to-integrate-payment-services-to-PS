@@ -20,8 +20,8 @@ public class Encoder {
     private static String defaultHeader = "0000000000";
 
     /*
-    Converts the EncodedMessage into the ParsedMessage.
-    At first into the ISOMessage and than into the ParsedMessage.
+    Converts the EncodedMessage into the ParsedMessageM.
+    At first into the ISOMessage and than into the ParsedMessageM.
      */
     public ParsedMessage getParsedMessage(EncodedMessage encodedMessage) throws ISOException {
         // Transformation of the encodeMessage to the isoMessage.
@@ -38,15 +38,15 @@ public class Encoder {
                     "the using of unallowable letters in the body" +
                     "or the too short length of the message.");
         }
-        // Transformation of the parsedMessage into the getParsedMessage.
+        // Transformation of the parsedMessageM into the getParsedMessage.
         ParsedMessage parsedMessage = getParsedMessage(isoMessage);
         return parsedMessage;
     }
 
     /*
    Returns the encodedMessage the folders of which match to
-   the values of the transmitted parsedMessage.
-   Accepts a parsedMessage.
+   the values of the transmitted parsedMessageM.
+   Accepts a parsedMessageM.
     */
     public EncodedMessage getEncodedMessage(ParsedMessage parsedMessage) throws ISOException {
         StringBuilder message = new StringBuilder();
@@ -93,13 +93,13 @@ public class Encoder {
     }
 
     /*
-    Converts an ISOMessage into a ParsedMessage.
+    Converts an ISOMessage into a ParsedMessageM.
      */
     private ParsedMessage getParsedMessage(ISOMessage isoMessage) throws ISOException {
         ParsedMessage parsedMessage = new ParsedMessage();
         parsedMessage.setHeader(StringUtil.fromByteArray(isoMessage.getHeader()));
         parsedMessage.setMti(isoMessage.getMti());
-        // Fulling of the parsedMessage by parsedFields.
+        // Fulling of the parsedMessageM by parsedFields.
         // The first element means the presence of the secondaryBitmap
         // which is not used in this project.
         for (int numField = 2; numField < 64 + 1; numField++) {
@@ -134,7 +134,7 @@ public class Encoder {
                     System.out.println("\t\tbody = " + parsedElement.getBody());
                 }
             }
-            // Adding of the new parsedField to the parsedMessage.
+            // Adding of the new parsedField to the parsedMessageM.
             parsedMessage.addField(parsedField);
         }
         return parsedMessage;

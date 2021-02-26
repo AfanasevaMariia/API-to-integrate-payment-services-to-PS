@@ -18,10 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.*;
 
+
 @SpringBootApplication
 @RestController
 public class CoreFormatterModuleApplication {
 
+	/*
+	This is not supposed to be run.
+	 */
 	public static void main(String[] args) throws IOException, ISOException {
 		SpringApplication.run(CoreFormatterModuleApplication.class, args);
 

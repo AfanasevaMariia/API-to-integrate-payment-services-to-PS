@@ -1,14 +1,14 @@
 package mir.services;
 
-import mir.models.Message;
+import mir.models.ParsedMessage;
 
 import java.util.List;
 
 public interface IMessageService {
 
-    List<Message> getMessages();
+    List<ParsedMessage> getMessages();
 
-    void addMessage(Message message);
+    void addMessage(ParsedMessage parsedMessage);
 
     void deleteMessageById(Integer id);
 

@@ -1,6 +1,6 @@
 package mir.services;
 
-import mir.models.Message;
+import mir.models.ParsedMessage;
 import mir.repositories.IMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,23 +19,23 @@ public class MessageService implements IMessageService {
     }
 
     @Override
-    public List<Message> getMessages() {
+    public List<ParsedMessage> getMessages() {
         return repository.findAll();
     }
 
     @Override
-    public void addMessage(Message message) {
+    public void addMessage(ParsedMessage parsedMessage) {
 
-        if (message.getText() == null || message.getText().isEmpty())
-            throw new IllegalStateException("Text of message cannot be null or empty");
+        if (parsedMessage.getText() == null || parsedMessage.getText().isEmpty())
+            throw new IllegalStateException("Text of parsedMessage cannot be null or empty");
 
-        repository.save(message);
+        repository.save(parsedMessage);
     }
 
     @Override
     public void deleteMessageById(Integer id) {
         if (!repository.existsById(id))
-            throw new IllegalStateException("Message with " + id + " doesn't exists");
+            throw new IllegalStateException("ParsedMessage with " + id + " doesn't exists");
 
         repository.deleteById(id);
     }
@@ -47,7 +47,7 @@ public class MessageService implements IMessageService {
             throw new IllegalStateException("Text of message cannot be null or empty");
 
         var message = repository.findById(id).orElseThrow(
-                () -> new IllegalStateException("Message with " + id + " doesn't exists"));
+                () -> new IllegalStateException("ParsedMessage with " + id + " doesn't exists"));
 
         message.setText(text);
     }

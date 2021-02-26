@@ -1,7 +1,7 @@
 package mir.controllers;
 
 
-import mir.models.Message;
+import mir.models.ParsedMessage;
 import mir.services.IMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +20,13 @@ public class MessageController {
     }
 
     @GetMapping
-    public List<Message> getMessages() {
+    public List<ParsedMessage> getMessages() {
         return service.getMessages();
     }
 
     @PostMapping
-    public void addMessage(@RequestBody Message message) {
-        service.addMessage(message);
+    public void addMessage(@RequestBody ParsedMessage parsedMessage) {
+        service.addMessage(parsedMessage);
     }
 
     @DeleteMapping(path = "{id}")

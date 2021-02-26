@@ -20,7 +20,7 @@ public class Router {
     public static ParsedMessage getParsedMessage(String encodedMessageJSON) throws IOException, ISOException {
         // Getting of the encodedMessage.
         EncodedMessage encodedMessage = extractEncodedMessage(encodedMessageJSON);
-        // Formation of the parsedMessage.
+        // Formation of the parsedMessageM.
         Encoder encoder = new Encoder();
         ParsedMessage parsedMessage = encoder.getParsedMessage(encodedMessage);
 
@@ -43,7 +43,7 @@ public class Router {
 
     /*
     Returns the String which is the encodedMessage in the JSON format.
-	The encodedMessage is given from a parsedMessage.
+	The encodedMessage is given from a parsedMessageM.
      */
     public static String formEncodedMessage(ParsedMessage parsedMessage) throws IOException, ISOException {
         // Formation of the encodedMessage.
@@ -64,7 +64,7 @@ public class Router {
 	For debugging. Print of a parseMessage.
 	 */
     static void printParsedMessage(ParsedMessage parsedMessage) {
-        System.out.println("parsedMessage:");
+        System.out.println("parsedMessageM:");
         System.out.println("mti = " + parsedMessage.getMti());
         System.out.println("folders:");
         for (ParsedField parsedField : parsedMessage.getFields().values()) {
