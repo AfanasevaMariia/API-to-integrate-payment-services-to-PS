@@ -10,6 +10,7 @@
         <module name="controllers" />
         <module name="routing" />
         <module name="services" />
+        <module name="parsing" />
         <module name="repositories" />
       </profile>
     </annotationProcessing>
@@ -19,6 +20,7 @@
       <module name="controllers" options="-parameters" />
       <module name="core" options="-parameters" />
       <module name="models" options="-parameters" />
+      <module name="parsing" options="-parameters" />
       <module name="repositories" options="-parameters" />
       <module name="routing" options="-parameters" />
       <module name="services" options="-parameters" />

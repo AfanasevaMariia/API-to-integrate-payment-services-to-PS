@@ -10,6 +10,7 @@
         <module>controllers</module>
         <module>repositories</module>
         <module>services</module>
+        <module>parsing</module>
     </modules>
 
     <parent>
