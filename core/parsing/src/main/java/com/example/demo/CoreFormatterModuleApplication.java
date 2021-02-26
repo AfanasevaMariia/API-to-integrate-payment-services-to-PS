@@ -1,7 +1,7 @@
 
 package com.example.demo;
-import com.example.demo.entities.EncodedMessage;
-import com.example.demo.entities.ParsedMessage;
+import mir.models.EncodedMessage;
+import mir.models.ParsedMessage;
 import com.example.demo.routing.Router;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imohsenb.ISO8583.builders.ISOMessageBuilder;
@@ -12,7 +12,6 @@ import com.imohsenb.ISO8583.enums.MESSAGE_ORIGIN;
 import com.imohsenb.ISO8583.enums.VERSION;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
-import mir.models.Message;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;

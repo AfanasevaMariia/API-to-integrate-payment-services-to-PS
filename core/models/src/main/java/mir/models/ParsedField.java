@@ -1,4 +1,4 @@
-package com.example.demo.entities;
+package mir.models;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;

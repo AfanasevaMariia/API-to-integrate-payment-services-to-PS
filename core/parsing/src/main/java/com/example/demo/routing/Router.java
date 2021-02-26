@@ -1,9 +1,9 @@
 package com.example.demo.routing;
 
 import com.example.demo.formatters.Encoder;
-import com.example.demo.entities.EncodedMessage;
-import com.example.demo.entities.ParsedField;
-import com.example.demo.entities.ParsedMessage;
+import mir.models.EncodedMessage;
+import mir.models.ParsedField;
+import mir.models.ParsedMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 
@@ -52,7 +52,6 @@ public class Router {
 
         // Print for debugging.
         printEncodedMessage(encodedMessage);
-
         // Serialization of the encodedMessage.
         StringWriter writer = new StringWriter();
         ObjectMapper mapper = new ObjectMapper();

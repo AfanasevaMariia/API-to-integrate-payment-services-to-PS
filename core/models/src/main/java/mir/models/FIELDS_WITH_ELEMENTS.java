@@ -1,4 +1,4 @@
-package com.example.demo.entities;
+package mir.models;
 
 import java.util.HashMap;
 import java.util.Map;

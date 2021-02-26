@@ -1,11 +1,11 @@
 package com.example.demo.formatters;
 
-import com.example.demo.entities.*;
 import com.imohsenb.ISO8583.builders.ISOMessageBuilder;
 import com.imohsenb.ISO8583.entities.ISOMessage;
 import com.imohsenb.ISO8583.enums.FIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
+import mir.models.*;
 
 import java.util.HashMap;
 import java.util.Set;
