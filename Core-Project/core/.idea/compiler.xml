@@ -9,13 +9,16 @@
         <module name="models" />
         <module name="controllers" />
         <module name="routing" />
+        <module name="RoutingModule" />
         <module name="services" />
         <module name="repositories" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="11" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="RoutingModule" options="-parameters" />
       <module name="controllers" options="-parameters" />
       <module name="core" options="-parameters" />
       <module name="models" options="-parameters" />
