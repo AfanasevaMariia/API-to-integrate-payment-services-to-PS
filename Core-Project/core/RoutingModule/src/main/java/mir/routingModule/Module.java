@@ -69,17 +69,17 @@ public class Module {
                         // endregion
 
                         // region 2. Parse & Check
-                        Router router = new Router(); // Router object from Parsing module.
-                        ParsedMessage parsedMessage = router.getParsedMessage(encodedMessage); // TODO: прикрутить парс ParsingModule.
+//                        Router router = new Router(); // Router object from Parsing module. // TODO: прикрутить ParsingModule.
+//                        ParsedMessage parsedMessage = router.getParsedMessage(encodedMessage); // TODO: прикрутить ParsingModule.
 
-                        boolean isValid = /*CheckerModule.check(parsedMessage)*/ true; // TODO: прикрутить валидатор CheckerModule.
+                        boolean isValid = /*CheckerModule.check(parsedMessage)*/ true; // TODO: прикрутить CheckerModule.
 
                         // endregion
 
                         if (isValid) {
                             // region 3. Edit; 4. Save to DB; 5. Form new message.
 
-                            String encodedMessage = router.fromEncodedMessage(parsedMessage);
+//                            String encodedMessage = router.fromEncodedMessage(parsedMessage); // TODO: прикрутить ParsingModule.
 
                             // endregion
 

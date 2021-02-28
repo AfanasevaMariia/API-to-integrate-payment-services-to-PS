@@ -6,7 +6,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class RoutingModule {
+public class Application {
 //    private static final int MTI_LENGTH = 4;
 
     static public void start() {
@@ -38,7 +38,9 @@ public class RoutingModule {
     }
 
     public static void main(String[] args) {
-//        run();
+        // TODO: сделать запуск модулей эквайера, платформы и эмитента параллельным, вызовом одной функции.
+        // TODO: На данный момент каждый модуль надо запускать самому.
+        // run();
 
         System.out.println(sendMessage("asdasd)"));
     }
