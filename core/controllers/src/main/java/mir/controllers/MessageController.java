@@ -1,15 +1,15 @@
 package mir.controllers;
 
-
 import mir.models.ParsedMessage;
 import mir.services.IMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "api/message")
+@RequestMapping
 public class MessageController {
 
     private final IMessageService service;
@@ -20,6 +20,11 @@ public class MessageController {
     }
 
     @GetMapping
+    public String welcome(){
+        return "Welcome to Mir-Core";
+    }
+
+    @GetMapping(path = "/messages")
     public List<ParsedMessage> getMessages() {
         return service.getMessages();
     }
@@ -36,7 +41,7 @@ public class MessageController {
 
     @PutMapping(path = "{id}")
     public void updateMessage(@PathVariable("id") Integer id,
-                              @RequestParam(required = false) String text) {
-        service.updateMessage(id, text);
+                              @RequestBody ParsedMessage parsedMessage) {
+        service.updateMessage(id, parsedMessage);
     }
 }

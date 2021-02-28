@@ -1,8 +1,10 @@
 package mir.models;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.sun.istack.NotNull;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
@@ -13,14 +15,15 @@ public class ParsedMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String header;
     private String mti;
+    private String hex;
+    private String header;
+    private boolean edited;
     private LocalDateTime transactionDate;
     private String transactionNumber;
-    // TODO: 2/25/2021 HashMap<Integer, ParsedField> fields = new HashMap<Integer, ParsedField>();
+
     @Transient
-    HashMap<Integer, ParsedField> fields = new HashMap<Integer, ParsedField>();
-    private String text; // TODO: 2/25/2021 Must be removed
+    private HashMap<Integer, ParsedField> fields = new HashMap<>();
 
     public ParsedMessage() {
     }
@@ -32,22 +35,6 @@ public class ParsedMessage {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public String getHeader() {
-        return header;
-    }
-
-    public void setHeader(String header) {
-        this.header = header;
     }
 
     public String getMti() {
@@ -85,6 +72,30 @@ public class ParsedMessage {
 
     public void addField(ParsedField field) {
         fields.put(field.getId(), field);
+    }
+
+    public String getHex() {
+        return hex;
+    }
+
+    public void setHex(String hex) {
+        this.hex = hex;
+    }
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
+    }
+
+    public String getHeader() {
+        return header;
+    }
+
+    public void setHeader(String header) {
+        this.header = header;
     }
     //endregion
 }

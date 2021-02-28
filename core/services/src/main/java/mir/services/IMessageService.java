@@ -12,5 +12,5 @@ public interface IMessageService {
 
     void deleteMessageById(Integer id);
 
-    void updateMessage(Integer id, String text);
+    void updateMessage(Integer id, ParsedMessage parsedMessage);
 }

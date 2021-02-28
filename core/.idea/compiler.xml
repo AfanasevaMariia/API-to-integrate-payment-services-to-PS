@@ -7,18 +7,24 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="models" />
-        <module name="controllers" />
         <module name="routing" />
+        <module name="lib" />
+        <module name="repositories" />
+        <module name="controllers" />
         <module name="services" />
         <module name="parsing" />
-        <module name="repositories" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ISO8583" target="11" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="ISO8583" options="-parameters" />
       <module name="controllers" options="-parameters" />
       <module name="core" options="-parameters" />
+      <module name="lib" options="-parameters" />
       <module name="models" options="-parameters" />
       <module name="parsing" options="-parameters" />
       <module name="repositories" options="-parameters" />
