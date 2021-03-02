@@ -163,6 +163,11 @@ public class ISOMessage {
         if (headerAvailable) {
             headerOffset = 5;
         }
+        // TODO: remove
+        /*System.out.println("bytes of message: ");
+        for (byte b :  message)
+            System.out.println(b);*/
+        //
 
         try {
 
@@ -188,7 +193,8 @@ public class ISOMessage {
      * @throws ISOException throws exception
      */
     public ISOMessage setMessage(byte[] message) throws ISOException {
-        return this.setMessage(message, true);
+        // false because it is not necessary to use header.
+        return this.setMessage(message, false);
     }
 
     private void parseHeader() {

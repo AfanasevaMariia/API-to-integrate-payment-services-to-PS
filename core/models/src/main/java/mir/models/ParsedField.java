@@ -15,7 +15,7 @@ public class ParsedField {
 
     private int id;
     private String type;
-    private String body;
+    private String content;
     private boolean hasElements = false;
     private HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
 
@@ -36,12 +36,12 @@ public class ParsedField {
         this.type = type;
     }
 
-    public String getBody() {
-        return body;
+    public String getContent() {
+        return content;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public boolean getHasElements() {
@@ -63,12 +63,16 @@ public class ParsedField {
 
     @JsonIgnore
     public String getBodyOrElementsHexStr() throws ISOException {
+        // The parsedField contains content in its elements.
         if (hasElements)
-            // The parsedField contains content in its elements.
             return getElementsHexStr();
-        else
             // The parsedField contains content in the body directly.
-            return StringUtil.asciiToHex(body);
+        else {
+            if (type == "n" || type == "b")
+                return content;
+            else
+                return StringUtil.asciiToHex(content);
+        }
     }
 
     @JsonIgnore
@@ -78,7 +82,7 @@ public class ParsedField {
             return getElementsStr();
         else
             // The parsedField contains content in the body directly.
-            return body;
+            return content;
     }
 
     private String getElementsHexStr() throws ISOException {
@@ -109,9 +113,9 @@ public class ParsedField {
         FIELDS fieldImage = FIELDS.valueOf(id);
         if (fieldImage.isFixed())
             throw new ISOException("Field has not the prefix of the length!");
-        if (body == null)
+        if (content == null)
             throw new ISOException("Field has not a body!");
-        int length = body.length();
+        int length = content.length();
         StringBuilder lengthStr = new StringBuilder(Integer.toString(length));
         while(lengthStr.length() < 4)
             lengthStr.insert(0, 0);

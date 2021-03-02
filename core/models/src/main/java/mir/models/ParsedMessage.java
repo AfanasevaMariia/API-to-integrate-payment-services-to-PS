@@ -12,12 +12,13 @@ import java.util.HashMap;
 @JsonAutoDetect
 public class ParsedMessage {
 
+    private static final String defaultTransactionNumber = "000000";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String mti;
     private String hex;
-    private String header;
     private boolean edited;
     private LocalDateTime transactionDate;
     private String transactionNumber;
@@ -58,6 +59,8 @@ public class ParsedMessage {
     }
 
     public void setTransactionNumber(String transactionNumber) {
+        if (transactionNumber == null)
+            this.transactionNumber = defaultTransactionNumber;
         this.transactionNumber = transactionNumber;
     }
 
@@ -86,16 +89,12 @@ public class ParsedMessage {
         return edited;
     }
 
+    public boolean getEdited() {
+        return this.edited;
+    }
+
     public void setEdited(boolean edited) {
         this.edited = edited;
-    }
-
-    public String getHeader() {
-        return header;
-    }
-
-    public void setHeader(String header) {
-        this.header = header;
     }
     //endregion
 }

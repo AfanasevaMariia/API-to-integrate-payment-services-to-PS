@@ -96,7 +96,6 @@ public class CoreFormatterModuleApplication {
 		Router router = new Router();
 		// This is that will be sent to routing module back.
 		// The extracting of the encodedMessage from the transmitted JSON string.
-		EncodedMessage encodedMessage = router.extractEncodedMessage(encodedMessageJSONFromService);
 		ParsedMessage parsedMessage = router.getParsedMessage(encodedMessageJSONFromService);
 
 		// The serialization for debugging.
@@ -105,7 +104,7 @@ public class CoreFormatterModuleApplication {
 
 		// For encoding.
 		String parsedMessageJSON2 = writer.toString();
-		String encodedMessageJSON2 = router.formEncodedMessage(parsedMessage);
+		String encodedMessageJSON2 = router.getEncodedMessage(parsedMessage);
 		// ----------------------------------------------------------------------------------------
 	}
 

@@ -26,7 +26,7 @@ public class ParsedElement {
     // The length of the direct content without the type, the id, the length.
     private int length;
     // Content.
-    private String body;
+    private String content;
 
     // Getters and Setters.
     public String getType() {
@@ -60,12 +60,12 @@ public class ParsedElement {
         this.length = length;
     }
 
-    public String getBody() {
-        return body;
+    public String getContent() {
+        return content;
     }
 
-    public void setBody(String body) {
-        this.body = body;
+    public void setContent(String content) {
+        this.content = content;
     }
     // The end of the Getters and Setters.
 
@@ -96,7 +96,7 @@ public class ParsedElement {
             // lengthStr.length() == 2
             elementStr.append("30" + lengthStr);
         // The body.
-        elementStr.append(StringUtil.asciiToHex(body));
+        elementStr.append(StringUtil.asciiToHex(content));
         return elementStr.toString();
     }
 
@@ -123,7 +123,7 @@ public class ParsedElement {
             // lengthStr.length() == 1
             elementStr.append("0" + length);
         // The body.
-        elementStr.append(body);
+        elementStr.append(content);
         return elementStr.toString();
     }
 }
