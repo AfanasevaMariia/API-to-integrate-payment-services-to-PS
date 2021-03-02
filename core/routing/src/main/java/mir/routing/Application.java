@@ -2,6 +2,7 @@ package mir.routing;
 
 //import mir.routing.exception.UnsupportedMessageTypeIDException;
 
+import mir.routing.constants.Constants;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;

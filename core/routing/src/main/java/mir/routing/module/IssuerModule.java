@@ -1,6 +1,6 @@
 package mir.routing.module;
 
-import mir.routing.Constants;
+import mir.routing.constants.Constants;
 import mir.routing.Module;
 
 public class IssuerModule {

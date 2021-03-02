@@ -1,4 +1,4 @@
-package mir.routing;
+package mir.routing.constants;
 
 public final class Constants {
     public final static class Ports {
