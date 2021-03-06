@@ -1,7 +1,6 @@
 package mir.routing.module;
 
 import mir.routing.constants.Constants;
-import mir.routing.Module;
 
 public class IssuerModule {
     public static void main(String[] args) {

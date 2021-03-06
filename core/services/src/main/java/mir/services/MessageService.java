@@ -43,8 +43,6 @@ public class MessageService implements IMessageService {
     @Transactional
     public void updateMessage(Integer id, ParsedMessage parsedMessage) {
 
-
-
         var message = repository.findById(id).orElseThrow(
                 () -> new IllegalStateException("ParsedMessage with " + id + " doesn't exists"));
 
