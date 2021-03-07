@@ -1,16 +1,38 @@
 package mir.services;
 
 import mir.models.ParsedMessage;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IMessageService {
 
-    List<ParsedMessage> getMessages();
+    List<ParsedMessage> getAll();
 
-    void addMessage(ParsedMessage parsedMessage);
+    void add(ParsedMessage parsedMessage);
 
-    void deleteMessageById(Integer id);
+    void deleteById(Integer id);
 
-    void updateMessage(Integer id, ParsedMessage parsedMessage);
+    void update(Integer id, ParsedMessage parsedMessage);
+
+    List<ParsedMessage> getAllByMti(String mti);
+
+    ParsedMessage getByTransactionNumber(String transactionNumber);
+
+    List<ParsedMessage> getAllByTransactionDateBetween(LocalDateTime start, LocalDateTime end);
+
+    List<ParsedMessage> getAllByHex(String hex);
+
+    List<ParsedMessage> getAllEdited(boolean edited);
+
+    void deleteAllByMti(String mti);
+
+    void deleteByTransactionNumber(String transactionNumber);
+
+    void deleteAllByTransactionDateBetween(LocalDateTime start, LocalDateTime end);
+
+    void deleteAllByHex(String hex);
+
+    void deleteAllByEdited(boolean edited);
 }

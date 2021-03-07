@@ -20,18 +20,18 @@ public class MessageController {
         this.service = service;
     }
 
+    //    @ApiResponses(value = {
+//            @ApiResponse(code = 200, message = "Client successfully saved"),
+//            @ApiResponse(code = 400, message = "The user already exists")
+//    })
     @GetMapping(path = "/welcome")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Client successfully saved"),
-            @ApiResponse(code = 400, message = "The user already exists")
-    })
-    public String welcome(){
+    public String welcome() {
         return "Welcome to Mir-Core";
     }
 
     @GetMapping(path = "/messages")
     public List<ParsedMessage> getMessages() {
-        return service.getMessages();
+        return service.getAll();
     }
 
 //    // TODO: 3/6/2021 Will be removed

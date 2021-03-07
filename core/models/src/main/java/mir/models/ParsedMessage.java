@@ -1,6 +1,7 @@
 package mir.models;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sun.istack.NotNull;
 
 import javax.persistence.*;
@@ -24,6 +25,7 @@ public class ParsedMessage {
     private String transactionNumber;
 
     @Transient
+    @JsonIgnore
     private HashMap<Integer, ParsedField> fields = new HashMap<>();
 
     public ParsedMessage() {
