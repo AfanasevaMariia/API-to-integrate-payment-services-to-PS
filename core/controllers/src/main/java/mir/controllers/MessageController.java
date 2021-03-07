@@ -5,8 +5,10 @@ import io.swagger.annotations.ApiResponses;
 import mir.models.ParsedMessage;
 import mir.services.IMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -32,6 +34,22 @@ public class MessageController {
     @GetMapping(path = "/messages")
     public List<ParsedMessage> getMessages() {
         return service.getAll();
+    }
+
+    /**
+     * Example: 2021-03-07T21:35:44
+     * @param start start date
+     * @param end end date
+     * @return list of messages
+     */
+    @GetMapping(path = "/date")
+    public List<ParsedMessage> getAllByTransactionDateBetween(
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @RequestParam LocalDateTime start,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            @RequestParam LocalDateTime end) {
+
+        return service.getAllByTransactionDateBetween(start, end);
     }
 
 //    // TODO: 3/6/2021 Will be removed

@@ -979,6 +979,7 @@ UC/10
     </sequence>
     <table id="32" parent="18" name="parsed_message">
       <ObjectId>41218</ObjectId>
+      <Outdated>1</Outdated>
       <Owner>postgres</Owner>
       <StateNumber>633</StateNumber>
     </table>
