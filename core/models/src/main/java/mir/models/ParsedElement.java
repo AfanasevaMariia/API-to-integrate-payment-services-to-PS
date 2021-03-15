@@ -89,7 +89,7 @@ public class ParsedElement {
             // idStr.length() == 2
             elementStr.append("30" + idStr);
         // The length.
-        String lengthStr = StringUtil.asciiToHex(Integer.toString(id));
+        String lengthStr = StringUtil.asciiToHex(Integer.toString(length));
         if (lengthStr.length() == 4)
             elementStr.append(lengthStr);
         else
@@ -125,5 +125,24 @@ public class ParsedElement {
         // The body.
         elementStr.append(content);
         return elementStr.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof ParsedElement)) {
+            return false;
+        }
+
+        ParsedElement c = (ParsedElement) o;
+
+        return getId() == c.getId() &&
+                getLength() == c.getLength() &&
+                getType().equals(c.getType()) &&
+                getContent().equals(c.getContent());
     }
 }

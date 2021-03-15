@@ -96,4 +96,43 @@ public class ParsedMessage {
         this.edited = edited;
     }
     //endregion
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof ParsedMessage)) {
+            return false;
+        }
+
+        ParsedMessage pm = (ParsedMessage) o;
+
+
+        boolean equalsOrNot;
+        equalsOrNot =
+                (getId() == null && pm.getId() == null || getId().equals(pm.getId())) &&
+                getMti().equals(pm.getMti()) &&
+                getHex().equals(pm.getHex()) &&
+                (getTransactionDate() == null && pm.getTransactionDate() == null
+                        || getTransactionDate().equals(pm.getTransactionDate())) &&
+                getTransactionNumber().equals(pm.getTransactionNumber()) &&
+                getEdited() == pm.getEdited();
+
+        if (equalsOrNot) {
+            equalsOrNot = equalFieldsOrNot(pm);
+        }
+
+        return equalsOrNot;
+    }
+
+    private boolean equalFieldsOrNot(ParsedMessage other) {
+        if (getFields().size() == other.getFields().size()) {
+            return getFields().entrySet().stream()
+                    .allMatch(e -> e.getValue().equals(other.getFields().get(e.getKey())));
+        } else {
+            return false;
+        }
+    }
 }

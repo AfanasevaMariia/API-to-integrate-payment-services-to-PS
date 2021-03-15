@@ -8,6 +8,7 @@ import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @JsonAutoDetect
 @NoArgsConstructor
@@ -120,5 +121,43 @@ public class ParsedField {
         while(lengthStr.length() < 4)
             lengthStr.insert(0, 0);
         return lengthStr.toString();
+    }
+
+    // Overriding equals() to compare two ParsedFields
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) {
+            return true;
+        }
+
+        if (!(o instanceof ParsedField)) {
+            return false;
+        }
+
+        ParsedField c = (ParsedField) o;
+
+        boolean equalsOrNot;
+
+        equalsOrNot = getId() == c.getId() &&
+                      getType().equals(c.getType()) &&
+                      getContent().equals(c.getContent());
+
+        if (equalsOrNot && getHasElements() == c.getHasElements()) {
+            equalsOrNot = equalElementsOrNot(c);
+        } else {
+            return false;
+        }
+
+        return equalsOrNot;
+    }
+
+    private boolean equalElementsOrNot(ParsedField other) {
+        if (getElements().size() == other.getElements().size()) {
+            return getElements().entrySet().stream()
+                    .allMatch(e -> e.getValue().equals(other.getElements().get(e.getKey())));
+        } else {
+            return false;
+        }
     }
 }
