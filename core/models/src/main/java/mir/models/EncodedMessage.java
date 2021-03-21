@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 /*
 Supposes a header.
- */
+*/
 @JsonAutoDetect
 @NoArgsConstructor
 public class EncodedMessage {

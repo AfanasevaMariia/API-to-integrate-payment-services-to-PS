@@ -24,7 +24,7 @@ class RouterTest {
         ParsedMessage parsedMessage = Router.getParsedMessage(encodedMessageJSON);
         System.out.println("getParsedMessage is ended");
 
-        String encodedMessageJSOMBack = Router.getEncodedMessage(parsedMessage);
+        String encodedMessageJSOMBack = Router.getHex(parsedMessage);
         System.out.println("getEncodedMessage is ended");
     }
 
@@ -67,7 +67,7 @@ class RouterTest {
 
         // For encoding.
         String parsedMessageJSON2 = writer.toString();
-        String encodedMessageJSON2 = router.getEncodedMessage(parsedMessage);
+        String encodedMessageJSON2 = router.getHex(parsedMessage);
     }
 
     /*

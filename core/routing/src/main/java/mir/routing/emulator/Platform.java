@@ -73,7 +73,7 @@ public class Platform {
             ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
             ParsedMessage parsedMessage1 = parsedMessage; // TODO: модуль формирования сообщения.
 
-            respText = sendHttpRequest(ISSUER_MODULE, Router.getEncodedMessage(parsedMessage1));
+            respText = sendHttpRequest(ISSUER_MODULE, Router.getHex(parsedMessage1));
 
             exchange.sendResponseHeaders(200, respText.getBytes().length);
             output = exchange.getResponseBody();

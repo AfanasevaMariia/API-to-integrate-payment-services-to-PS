@@ -10,6 +10,7 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/ISO8583/pom.xml" />
+        <option value="$PROJECT_DIR$/check/pom.xml" />
       </set>
     </option>
   </component>

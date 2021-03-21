@@ -3,27 +3,30 @@ package mir.parsing.formatters;
 import com.imohsenb.ISO8583.builders.ISOMessageBuilder;
 import com.imohsenb.ISO8583.entities.ISOMessage;
 import com.imohsenb.ISO8583.enums.FIELDS;
+import com.imohsenb.ISO8583.enums.SUBFIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import mir.models.*;
 
 import java.util.HashMap;
-import java.util.Set;
+import java.util.TreeMap;
 
 public class Encoder {
 
     /*
-    Converts the EncodedMessage into the ParsedMessageM.
-    At first into the ISOMessage and than into the ParsedMessageM.
+    Converts the hex into the ParsedMessage.
      */
-    public ParsedMessage getParsedMessage(EncodedMessage encodedMessage) throws ISOException {
-        // Transformation of the encodeMessage to the isoMessage.
-        String encodedMessageWithHeader = encodedMessage.message;
+    public ParsedMessage getParsedMessageFromHex(String hex) throws ISOException {
+        /*// Transformation of the encodeMessage to the isoMessage.
+        String encodedMessageWithHeader = encodedMessage.message;*/
+
+        // Transformation of the hex to the isoMessage.
         ISOMessage isoMessage;
         try {
             isoMessage = ISOMessageBuilder.Unpacker()
-                    .setMessage(encodedMessageWithHeader)
+                    .setMessage(hex)
                     .build();
+            // TODO: remove println.
             System.out.println("isoMessage.toString() = " + isoMessage);
         } catch (ISOException ex) {
             throw new ISOException("ISO-message has an incorrect format! " +
@@ -31,17 +34,17 @@ public class Encoder {
                     "the using of unallowable letters in the body" +
                     "or the too short length of the message.");
         }
-        // Transformation of the parsedMessageM into the getParsedMessage.
-        ParsedMessage parsedMessage = getParsedMessage(isoMessage);
+        // Transformation of the parsedMessage into the getParsedMessage.
+        ParsedMessage parsedMessage = getParsedMessageFromISO(isoMessage);
         return parsedMessage;
     }
 
     /*
-   Returns the encodedMessage the folders of which match to
-   the values of the transmitted parsedMessageM.
-   Accepts a parsedMessageM.
+    Returns the encodedMessage the folders of which match to
+    the values of the transmitted parsedMessage.
+    Accepts a parsedMessage.
     */
-    public EncodedMessage getEncodedMessage(ParsedMessage parsedMessage) throws ISOException {
+    public String getHex(ParsedMessage parsedMessage) throws ISOException {
         StringBuilder message = new StringBuilder();
         message.append(parsedMessage.getMti());
         // Formation of the primaryBitmap and extracting of the hex bodies of fields into the content.
@@ -65,9 +68,7 @@ public class Encoder {
         message.append(primaryBitmapHexStr);
         message.append(content);
 
-        EncodedMessage encodedMessage = new EncodedMessage();
-        encodedMessage.message = message.toString();
-        return encodedMessage;
+        return message.toString();
     }
 
     private static String convertBinPrimaryBitmapToHexStr(byte[] primaryBitmapBin) {
@@ -84,89 +85,483 @@ public class Encoder {
     }
 
     /*
-    Converts an ISOMessage into a ParsedMessageM.
+    Converts an ISOMessage into a ParsedMessage.
      */
-    private ParsedMessage getParsedMessage(ISOMessage isoMessage) throws ISOException {
+    private ParsedMessage getParsedMessageFromISO(ISOMessage isoMessage) throws ISOException {
         ParsedMessage parsedMessage = new ParsedMessage();
         parsedMessage.setMti(isoMessage.getMti());
         parsedMessage.setHex(StringUtil.fromByteArray(isoMessage.getBody()));
-        // Fulling of the parsedMessageM by parsedFields.
-        // The first element means the presence of the secondaryBitmap
-        // which is not used in this project.
-        for (int numField = 2; numField < 64 + 1; numField++) {
+        TreeMap<Integer, byte[]> dataElements = isoMessage.getDataElements();
+        for (int fieldId : dataElements.keySet()) {
             ParsedField parsedField = new ParsedField();
-            parsedField.setId(numField);
-            // Getting of the type of the data keeping in the field.
-            parsedField.setType(FIELDS.valueOf(numField).getType());
-            // Extracting of the body of the field.
-            try {
-                parsedField.setContent(isoMessage.getStringField(numField, true));
-                System.out.println("parsedField.body = " + parsedField.getContent());
-                // This field is not present in this message.
-            } catch (ISOException ex) {
-                System.out.println("Field with the number " + numField + " was omitted.");
-                continue;
-            }
-            setFieldElements(parsedField);
+            // Setting of the id.
+            parsedField.setId(fieldId);
+            FIELDS field = FIELDS.valueOf(fieldId);
+            // Setting of the type.
+            parsedField.setType(field.getType());
+            // Setting of the content.
+            parsedField.setContent(isoMessage.getStringField(fieldId, true));
+
+            // TODO: remove the link below.
+            System.out.println("content before the conversion= " + parsedField.getContent());
+            // TODO: check the correctness of the method below.
+            setContentOfSubfieldsOrElements(parsedField);
+            //setConvertedContentOrSubfieldsOrElements(parsedField);
+            System.out.println("content after the conversion= " + parsedField.getContent());
+
+            // Setting of the lengthMIP.
+            parsedField.setLengthMIP(getLengthMIPForParsedField(isoMessage, parsedField));
+            // Setting of the lengthReal.
+            parsedField.setLengthReal(getLengthRealForParsedField(isoMessage, parsedField, field));
+
             parsedMessage.addField(parsedField);
         }
-        setTransactionNumber(isoMessage, parsedMessage);
+        // Setting of the transaction number must happen after the parsing of fields
+        // because this value is taken from one of fields.
+        setTransactionNumber(parsedMessage);
         return parsedMessage;
     }
 
-    /*
-    Adds elements to the transmitted parsedField as the field if parsedField has them.
-    Else the method does nothing.
-     */
-    private static void setFieldElements(ParsedField parsedField) throws ISOException {
-        // If the field has elements.
-        if (FIELDS.valueOf(parsedField.getId()).getHasElements()) {
-            parsedField.setHasElements(true);
-            parsedField.setElements(parseField(parsedField));
-            // Print!
-            printElements(parsedField);
+    private static int getLengthMIPForParsedField(ISOMessage isoMessage, ParsedField parsedField) {
+        if (!parsedField.getHasSubfields() && !parsedField.getHasElements()) {
+            int fieldId = parsedField.getId();
+            FIELDS field = FIELDS.valueOf(fieldId);
+            if (field.isFixed())
+                return field.getMaxLength();
+            else
+                return isoMessage.getFieldLength(fieldId);
         }
+        int length = 0;
+        if (parsedField.getHasSubfields()) {
+            for (ParsedSubfield parsedSubfield : parsedField.getSubfields().values())
+                length += parsedSubfield.getLengthMIP();
+        }
+        // parsedField.getHasElements()
+        else {
+            for (ParsedElement parsedElement : parsedField.getElements().values())
+                length += parsedElement.getLengthMIP();
+        }
+        return length;
+    }
+
+    private static int getLengthRealForParsedField(ISOMessage isoMessage, ParsedField parsedField, FIELDS field) {
+        int length;
+        if (!parsedField.getHasSubfields() && !parsedField.getHasElements())
+            length = getLengthRealForParsedFieldWithoutSubfieldsOrElements(isoMessage, parsedField, field);
+        else {
+            length = 0;
+            // TODO: add to the documentation.
+            // Only fixed fields are considered!
+            if (parsedField.getHasSubfields())
+                for (ParsedSubfield parsedSubfield : parsedField.getSubfields().values())
+                    length += parsedSubfield.getLengthReal();
+                // parsedField.getHasElements()
+            else {
+                for (ParsedElement parsedElement : parsedField.getElements().values())
+                    length += parsedElement.getContent().length();
+            }
+        }
+        return length;
+    }
+
+    private static int getLengthRealForParsedFieldWithoutSubfieldsOrElements
+            (ISOMessage isoMessage, ParsedField parsedField, FIELDS field) {
+        int length;
+        // Getting of the length from FIELDS.
+        if (field.isFixed()) {
+            parsedField.setLengthMIP(field.getMaxLength());
+            // In compressed format.
+            if (field.getType().compareTo("n") == 0 ||
+                    field.getType().compareTo("b") == 0)
+                length = (field.getMaxLength() + 1) / 2;
+            else
+                length = field.getMaxLength();
+        }
+        // field is unfixed.
+        // Getting of the length from  the lengths of the isoMessage.
+        else {
+            parsedField.setLengthMIP(isoMessage.getFieldLength(parsedField.getId()));
+            // In compressed format.
+            if (field.getType().compareTo("n") == 0 ||
+                    field.getType().compareTo("b") == 0)
+                length = (isoMessage.getFieldLength(parsedField.getId()) + 1) / 2;
+            else
+                length = isoMessage.getFieldLength(parsedField.getId());
+        }
+        return length;
+    }
+
+
+    /*
+    If the transmitted field has subfields this method sets this its parsed subfields.
+    Else if the transmitted field has elements this method sets this its parsed elements.
+    Else this method convert the field content from hex.
+    Note, in the first and second situations the field content stays the same (hex).
+     */
+    /*private static void setConvertedContentOrSubfieldsOrElements(ParsedField parsedField) {
+        // The field has subfields.
+        if (parsedField.getHasSubfields())
+            setFieldSubfields(parsedField);
+        else {
+            // The field has elements.
+            if (parsedField.getHasElements())
+                setFieldElements(parsedField);
+            // The field has not any subfields or elements.
+            else
+                // If the type is equal to "n" or "b",
+                // the content has represented in the converted format already.
+                if (parsedField.getType().compareTo("n") != 0 &&
+                    parsedField.getType().compareTo("b") != 0)
+                    parsedField.setContent(StringUtil.hexToAscii(parsedField.getContent()));
+        }
+        return;
+    }*/
+
+    /*
+    If the transmitted field has subfields, this method sets its parsed subfields to this.
+    Else if the transmitted field has elements, this method sets its parsed elements to this.
+    I the first or the second situation the sequence of the bodies of the subfields (elements)
+    are setting as the content of the parsedField.
+    Note, in this moment the conversion of the parsedField content from the hex format is happening.
+    */
+    private static void setContentOfSubfieldsOrElements(ParsedField parsedField) throws ISOException {
+        // The field has subfields.
+        FIELDS fields = FIELDS.valueOf(parsedField.getId());
+        if (fields.getHasSubfields()) {
+            parsedField.setHasSubfields(true);
+            parsedField.setSubfields(parseSubfields(parsedField));
+            return;
+        }
+        // The field has elements.
+        if (fields.getHasElements()) {
+            parsedField.setHasElements(true);
+            parsedField.setElements(parseElements(parsedField));
+            return;
+        }
+    }
+
+    /*
+    Sets the sequence of the subfields contents as the content of the parsedField.
+    */
+    private static void setSubfieldsAsParsedFieldContent(ParsedField parsedField) {
+        StringBuilder fieldContent = new StringBuilder();
+        HashMap<Integer, ParsedSubfield> subfields = parsedField.getSubfields();
+        for (ParsedSubfield subfield : subfields.values())
+            fieldContent.append(subfield.getContent());
+        parsedField.setContent(fieldContent.toString());
+        return;
+    }
+
+    /*
+    Sets the sequence of the elements contents as the content of the parsedField.
+    */
+    private static void setElementsAsParsedFieldContent(ParsedField parsedField) {
+        StringBuilder fieldContent = new StringBuilder();
+        HashMap<Integer, ParsedElement> elements = parsedField.getElements();
+        for (ParsedElement elem : elements.values()) {
+            fieldContent.append(elem.getType());
+            fieldContent.append(elem.getHexId());
+            fieldContent.append(elem.getHexLengthMIP());
+            fieldContent.append(elem.getContent());
+        }
+        parsedField.setContent(fieldContent.toString());
+        return;
     }
 
     /*
     Returns the HashMap of the elements of the field if it has these.
-     */
-    private static HashMap<Integer, ParsedElement> parseField(ParsedField parsedField) throws ISOException {
-        if (!parsedField.getHasElements())
-            throw new ISOException("Field has no elements!");
+    */
+    /*private static HashMap<Integer, ParsedElement> parseElements(ParsedField parsedField) {
         HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
         String bodyField = parsedField.getContent();
-        // Formation of the elements.
+        // Formation of the parsed elements.
         int indSym = 0;
         while (indSym < bodyField.length()) {
             ParsedElement parsedElement = new ParsedElement();
-            // The type of an parsedElement takes 0 positions.
-            parsedElement.setType(bodyField.substring(indSym, indSym + 1));
-            // The id of an parsedElement takes 1-2 positions.
-            parsedElement.setId(Integer.parseInt(bodyField.substring(indSym + 1, indSym + 3), 16));
-            // The length of an parsedElement takes 3-4 positions.
-            parsedElement.setLength(Integer.parseInt(bodyField.substring(indSym + 3, indSym + 5), 16));
-            // The body of an parsedElement takes positions begin at the 5th.
-            parsedElement.setContent(bodyField.substring(indSym + 5, indSym + 5 + parsedElement.getLength()));
+            // The type of an parsedElement takes positions 0-1.
+            String typeHex = bodyField.substring(indSym, indSym + 2);
+            parsedElement.setType(StringUtil.hexToAscii(typeHex));
+            // The id of an parsedElement takes positions 2-5.
+            String idHex = bodyField.substring(indSym + 2, indSym + 6);
+            parsedElement.setId(Integer.parseInt(StringUtil.hexToAscii(idHex), 16));
+            // The length of an parsedElement takes positions 6-9.
+            String lengthHex = bodyField.substring(indSym + 6, indSym + 10);
+            parsedElement.setLength(Integer.parseInt(StringUtil.hexToAscii(lengthHex), 16));
+            // The body of an parsedElement takes positions begin at the 10th.
+            int elementLengthInHex = setElemContent(parsedField, parsedElement, indSym);
             // The offset of the indSym to make it the first index of the next parsedElement.
-            indSym += 5 + parsedElement.getLength();
+            indSym += 10 + elementLengthInHex;
             elements.put(parsedElement.getId(), parsedElement);
+        }
+        return elements;
+    }*/
+
+    /*
+    Returns the HashMap of the elements of the field if it has these.
+    The content of the parsedField is represented in hex format.
+    */
+    private static HashMap<Integer, ParsedElement> parseElements(ParsedField parsedField) throws ISOException {
+        HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
+        String fieldContent = parsedField.getContent();
+        // Formation of the parsed elements.
+        int indSym = 0;
+        while (indSym < fieldContent.length()) {
+            ParsedElement parsedElement = new ParsedElement();
+            // The type of an parsedElement takes positions 0-1.
+            String typeHex = fieldContent.substring(indSym, indSym + 2);
+            parsedElement.setType(StringUtil.hexToAscii(typeHex));
+            // The id of an parsedElement takes positions 2-5.
+            String id = fieldContent.substring(indSym + 2, indSym + 6);
+            parsedElement.setId(Integer.parseInt(StringUtil.hexToAscii(id), 16));
+            // The length of an parsedElement takes positions 6-9.
+            String lengthHex = fieldContent.substring(indSym + 6, indSym + 10);
+            parsedElement.setLengthMIP(Integer.parseInt(StringUtil.hexToAscii(lengthHex), 16));
+            // The real length.
+            int contentSymbolsRealCount = getElemContentRealLength(parsedElement);
+            parsedElement.setLengthReal(contentSymbolsRealCount);
+            // Setting of the content.
+            parsedElement.setContent(getElemContent(parsedField, parsedElement, indSym, contentSymbolsRealCount));
+            // The offset of the indSym to make it the first index of the next parsedElement.
+            elements.put(parsedElement.getId(), parsedElement);
+            indSym += 10 + contentSymbolsRealCount;
         }
         return elements;
     }
 
+    /*private static String getElementType(ParsedField parsedField, int indSym) throws ISOException {
+        String fieldContent = parsedField.getContent();
+        // The type of an parsedElement takes positions 0-1.
+        String typeHex;
+        try {
+            typeHex = fieldContent.substring(indSym, indSym + 2);
+        }
+        catch (StringIndexOutOfBoundsException ex) {
+            throw new ISOException("The length of an element of the field №" +
+                                    parsedField.getId() + " is not enough to provide the type value!");
+        }
+        return StringUtil.hexToAscii(typeHex);
+    }
+
+    private static int getElementId(ParsedField parsedField, int indSym) throws ISOException {
+        String fieldContent = parsedField.getContent();
+        // The id of an parsedElement takes positions 2-5.
+        String id;
+        try {
+            id = fieldContent.substring(indSym + 2, indSym + 6);
+        }
+        catch(StringIndexOutOfBoundsException ex) {
+            throw new ISOException("The length of an element of the field №" +
+                                    parsedField.getId() + " is not enough to provide the id value!");
+        }
+        return Integer.parseInt(StringUtil.hexToAscii(id), 16);
+    }
+
+    private static int getElementLength(ParsedField parsedField, int indSym) throws ISOException {
+        String fieldContent = parsedField.getContent();
+        // The length of an parsedElement takes positions 6-9.
+        String lengthHex;
+        try {
+            lengthHex = fieldContent.substring(indSym + 6, indSym + 10);
+        }
+        catch (StringIndexOutOfBoundsException ex) {
+            throw new ISOException("The length of an element of the field №" +
+                                    parsedField.getId() + " is not enough to provide the length value!");
+        }
+        return Integer.parseInt(StringUtil.hexToAscii(lengthHex), 16);
+    }*/
+
     /*
-    Sets the transaction number of the parsedMessage if it has the 11th field System Trace Audit Number (STAN).
+    Returns the real length (the quantity of symbols) of the content of the transmitted parsedElement.
      */
-    private static void setTransactionNumber(ISOMessage isoMessage, ParsedMessage parsedMessage) throws ISOException {
-        if (parsedMessage.getFields().containsKey(11)) {
-            int index = 11;
-            ParsedField parsedField = parsedMessage.getFields().get(11);
-            parsedMessage.setTransactionNumber(parsedField.getBodyOrElementsStr());
+    private static int getElemContentRealLength(ParsedElement parsedElement) {
+        int elemLength = parsedElement.getLengthMIP();
+        // Compressed format.
+        if (parsedElement.getType().compareTo("%") == 0) {
+            // The first additional zero is considered.
+            if (elemLength % 2 != 0)
+                elemLength++;
+        }
+        // Uncompressed format.
+        // parsedElement.getType().compareTo("^") == 0.
+        else
+            elemLength *= 2; // Every element takes 2 hexadecimal symbols.
+        return elemLength;
+    }
+
+    /*
+    Returns the content of the transmitted element.
+    If the type of this is equal to "^", conversion from hex happens.
+    In otherwise the conversion does not happen.
+    */
+    private static String getElemContent
+    (ParsedField parsedField, ParsedElement parsedElement, int indSym, int contentSymbolsRealCount)
+            throws ISOException {
+        String fieldContent = parsedField.getContent();
+        // The content of an parsedElement takes positions begin at the 10th.
+        String elemContent = fieldContent.substring(indSym + 10, indSym + 10 + contentSymbolsRealCount);
+        // The content of the parsedElement has been converted from the hex format already.
+        if (parsedElement.getType().compareTo("%") == 0)
+            return elemContent;
+        // The content of the parsedElement needs in the conversion from the hex format.
+        return StringUtil.hexToAscii(elemContent);
+    }
+
+    /*
+    Without an alternative method.
+    */
+    /*
+    Sets the content for the transmitted element.
+    If the type of this is equal to "^", conversion from hex happens.
+    In otherwise the conversion does not happen.
+    ------------------------------
+    Returns the count of symbols which is contained in the transmitted element
+    of a message of the hex representation.
+    On the strength of some features of the Lib a got value can be equal to
+    or different from the value from MIP.
+    */
+    /*private static int setElemContent(ParsedField parsedField, ParsedElement parsedElement, int indSym) {
+        String bodyField = parsedField.getContent();
+        String elemContent = null;
+        int elemLengthInMessage = parsedElement.getLength() * 2; // One number takes one byte.
+        if (parsedField.getType().compareTo("n") == 0) {
+            elemLengthInMessage /= 2; // One number takes a half of a byte.
+            if (parsedElement.getLength() % 2 != 0)
+                elemLengthInMessage++; // The additional "0" at the beginning.
+            elemContent = bodyField.substring(indSym + 10, indSym + 10 + elemLengthInMessage);
+        }
+        else {
+            String elemContentHex = bodyField.substring(indSym + 10, indSym + 10 + elemLengthInMessage);
+            elemContent = StringUtil.hexToAscii(elemContentHex);
+        }
+        parsedElement.setContent(elemContent);
+        return elemLengthInMessage;
+    }*/
+
+
+    /*
+    Changes the hex body of the parsedField on the decrypted body.
+    Used for parsed fields which has elements.
+    This method builds the parsedField content as a the sequence of the elements contents.
+     */
+    /*private static void setDecryptedContentForParsedField(ParsedField parsedField) {
+        HashMap<Integer, ParsedElement> elements = parsedField.getElements();
+        if (elements.size() > 0) {
+            StringBuilder fieldContent = new StringBuilder();
+            for (ParsedElement parsedElement : elements.values()) {
+                fieldContent.append(parsedElement.getType());
+                fieldContent.append(parsedElement.getHexId());
+                fieldContent.append(parsedElement.getHexLength());
+                fieldContent.append(parsedElement.getContent());
+            }
+            parsedField.setContent(fieldContent.toString());
+        }
+    }*/
+
+    /*
+    Returns the subfields which contains parsed subfields.
+    This method does not consider unfixed parsed fields!
+     */
+    private static HashMap<Integer, ParsedSubfield> parseSubfields(ParsedField parsedField)
+            throws StringIndexOutOfBoundsException {
+        HashMap<Integer, ParsedSubfield> subfields = new HashMap<Integer, ParsedSubfield>();
+        // Formation of the parsed subfields.
+        int fieldId = parsedField.getId();
+        int maxCountSubfields = FIELDS.valueOf(fieldId).getMaxSubfieldsId();
+        for (int subfieldId = 1; subfieldId <= maxCountSubfields; subfieldId++)  {
+            ParsedSubfield parsedSubfield = formParsedSubfield(parsedField, subfieldId);
+            if (parsedSubfield != null)
+                subfields.put(subfieldId, parsedSubfield);
+        }
+        return subfields;
+    }
+
+    /*
+    Returns the formed parsedSubfield.
+    This method does not consider unfixed parsed fields!
+    */
+    private static ParsedSubfield formParsedSubfield(ParsedField parsedField, int subfieldId) {
+        int fieldId = parsedField.getId();
+        SUBFIELDS subfieldSample = SUBFIELDS.valueOf(fieldId, subfieldId);
+        // subfieldSample can be null if the Lib for work with subfields
+        // has not the information about this subfield.
+        if (subfieldSample != null) {
+            ParsedSubfield parsedSubfield = new ParsedSubfield();
+            parsedSubfield.setId(subfieldId);
+            parsedSubfield.setType(subfieldSample.getType());
+            // The length according to the MIP.
+            // The subfields with the variable length is not taken into account!!!
+            int length = subfieldSample.getLength();
+            parsedSubfield.setLengthMIP(length);
+            // The real length (the quantity of symbols) of the parsedSubfield.
+            length = getParsedSubfieldRealLength(parsedField, parsedSubfield, length);
+            parsedSubfield.setLengthReal(length);
+            parsedSubfield.setContent(getSubfieldContent(parsedField, subfieldSample, length));
+            return parsedSubfield;
+        }
+        return null;
+    }
+
+    private static String getSubfieldContent
+            (ParsedField parsedField, SUBFIELDS subfieldSample, int lengthRealOfParsedSubfield) {
+        int beginInd = subfieldSample.getBeginInd();
+        // The content of the subfield has been converted from the hex format already.
+        if (parsedField.getType().compareTo("n") == 0 ||
+                parsedField.getType().compareTo("b") == 0)
+            return parsedField.getContent().substring(beginInd, beginInd + lengthRealOfParsedSubfield);
+            // The content of the subfield needs in the conversion from the hex format.
+        else {
+            String subfieldHexContent
+                    = parsedField.getContent().substring(beginInd, beginInd + lengthRealOfParsedSubfield);
+            return StringUtil.hexToAscii(subfieldHexContent);
+        }
+    }
+
+    /*
+    Returns the real length (the quantity of symbols) of the transmitted parsedSubfield.
+     */
+    private static int getParsedSubfieldRealLength
+    (ParsedField parsedField, ParsedSubfield parsedSubfield, int length) {
+        // Compressed format.
+        if (parsedSubfield.getType().compareTo("n") == 0 ||
+                parsedSubfield.getType().compareTo("b") == 0) {
+            // The first additional zero is considered.
+            if (length % 2 != 0)
+                length++;
+            // TODO: define with /= 2 or without /= 2.
+            //length /= 2;
+        }
+        // Uncompressed format.
+        else
+            length *= 2;
+        return length;
+    }
+
+    // TODO: change the returned type from void to int
+    //  which will be used to return the transaction number.
+    /*
+    Sets the transaction number of the parsedMessage if it has the 2th element
+    of the 63th field (Transaction Reference Number (TRN)).
+     */
+    private static void setTransactionNumber(ParsedMessage parsedMessage) {
+        int fieldId = 63;
+        int elemId = 2;
+        int elemContentLength = 16;
+        // If the required field is set.
+        if (parsedMessage.getFields().containsKey(fieldId)) {
+            ParsedField parsedField = parsedMessage.getFields().get(fieldId);
+            // If the subfield/element is set.
+            if (parsedField.getElements().containsKey(elemId)) {
+                ParsedElement parsedElement = parsedField.getElements().get(elemId);
+                String transactionNumber = parsedElement.getContent();
+                parsedMessage.setTransactionNumber(transactionNumber);
+            }
+            else
+                parsedMessage.setTransactionNumber(null);
         }
         else
-            // Setting of the mark that the transactionNumber is not pointed.
+            // Setting of the mark that the transactionNumber is not set.
             parsedMessage.setTransactionNumber(null);
+        return;
     }
 
     /*
@@ -208,20 +603,6 @@ public class Encoder {
                 return 'F';
             default:
                 return 'Z';
-        }
-    }
-
-    private static void printElements(ParsedField parsedField){
-        HashMap<Integer, ParsedElement> elements = parsedField.getElements();
-        Set keys = elements.keySet();
-        System.out.println("elements:");
-        for (Object key : keys) {
-            System.out.println("\telem:");
-            ParsedElement parsedElement = elements.get((Integer)key);
-            System.out.println("\t\tid = " + parsedElement.getId());
-            System.out.println("\t\ttype = " + parsedElement.getType());
-            System.out.println("\t\tlength = " + parsedElement.getLength());
-            System.out.println("\t\tbody = " + parsedElement.getContent());
         }
     }
 }
