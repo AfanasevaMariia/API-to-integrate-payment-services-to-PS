@@ -3,33 +3,14 @@ package mir.routing.emulator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import mir.routing.constants.Constants;
-import mir.routing.exception.PortNotFoundException;
 
 import java.io.*;
 import java.net.*;
 
+import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
 
-public class IssuerModule {
-    private final static String PAYLOAD_HEADER = "Payload";
+public class Issuer {
     private static int port;
-
-    private static int getSendPort(int mti) throws PortNotFoundException {
-        switch (port) {
-            case Constants.Ports.ACQUIRER_MODULE:
-            case Constants.Ports.ISSUER_MODULE:
-                return Constants.Ports.PLATFORM_MODULE;
-            case Constants.Ports.PLATFORM_MODULE:
-                if (mti == 0100) {
-                    return Constants.Ports.ISSUER_MODULE;
-                } else /*if (mti == 0110)*/ {
-                    return Constants.Ports.ACQUIRER_MODULE;
-                }
-            default:
-                // TODO: Change to Exception type, not RuntimeException.
-                throw new PortNotFoundException("There's no module with port provided");
-        }
-    }
 
     private static void handleGetRequest(HttpExchange exchange) throws IOException {
         String respText;
@@ -42,7 +23,7 @@ public class IssuerModule {
             String payloadContent = headers.getFirst(PAYLOAD_HEADER);
 
             if (true/*CheckIfCorrect(payloadContent)*/) { // TODO: Модуль проверки сообщений.
-                respText = payloadContent + " from issuer";
+                respText = payloadContent; // TODO: Parsing.
 
                 exchange.sendResponseHeaders(200, respText.getBytes().length);
                 output = exchange.getResponseBody();
@@ -95,12 +76,7 @@ public class IssuerModule {
         }
     }
 
-    public static void main(String[] args) {
-        IssuerModule issuerModule = new IssuerModule(Constants.Ports.ISSUER_MODULE);
-        issuerModule.start();
-    }
-
-    public IssuerModule(int port) {
+    public Issuer(int port) {
         this.port = port;
     }
 }
