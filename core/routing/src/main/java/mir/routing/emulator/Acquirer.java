@@ -3,36 +3,23 @@ package mir.routing.emulator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import mir.routing.constants.Constants;
 import mir.routing.exception.PortNotFoundException;
+
+import mir.models.ParsedMessage;
+import mir.parsing.routing.Router;
 
 import java.io.*;
 import java.net.*;
 
-public class AcquirerModule {
-    private final static String PAYLOAD_HEADER = "Payload";
-    private static int port;
+import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
+import static mir.routing.constants.Constants.Ports.PLATFORM_MODULE;
 
-    private static int getSendPort(int mti) throws PortNotFoundException {
-        switch (port) {
-            case Constants.Ports.ACQUIRER_MODULE:
-            case Constants.Ports.ISSUER_MODULE:
-                return Constants.Ports.PLATFORM_MODULE;
-            case Constants.Ports.PLATFORM_MODULE:
-                if (mti == 0100) {
-                    return Constants.Ports.ISSUER_MODULE;
-                } else /*if (mti == 0110)*/ {
-                    return Constants.Ports.ACQUIRER_MODULE;
-                }
-            default:
-                // TODO: Change to Exception type, not RuntimeException.
-                throw new PortNotFoundException("There's no module with port provided");
-        }
-    }
+public class Acquirer {
+    private static int port;
 
     private static String sendHttpRequest(int sendPort, String payloadContent) throws IOException {
         // Configure request.
-        URL url = new URL(String.format("http://localhost:%d/api", sendPort)); // TODO: getPort(mti);
+        URL url = new URL(String.format("http://localhost:%d/api", sendPort));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Content-type", "text/plain");
@@ -66,9 +53,7 @@ public class AcquirerModule {
 
             if (true/*CheckIfCorrect(payloadContent)*/) { // TODO: Модуль проверки сообщений.
                 // --- CORRECT HEADER CONTENT --- //
-                respText = sendHttpRequest(Constants.Ports.PLATFORM_MODULE, payloadContent + " from acquirer");
-
-                respText += " from acquirer\n";
+                respText = sendHttpRequest(PLATFORM_MODULE, payloadContent);
 
                 exchange.sendResponseHeaders(200, respText.getBytes().length);
                 output = exchange.getResponseBody();
@@ -120,12 +105,7 @@ public class AcquirerModule {
         }
     }
 
-    public static void main(String[] args) {
-        AcquirerModule acquirerModule = new AcquirerModule(Constants.Ports.ACQUIRER_MODULE);
-        acquirerModule.start();
-    }
-
-    public AcquirerModule(int port) {
+    public Acquirer(int port) {
         this.port = port;
     }
 }

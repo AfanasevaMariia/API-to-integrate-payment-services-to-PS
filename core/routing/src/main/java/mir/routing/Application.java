@@ -1,7 +1,7 @@
 package mir.routing;
 
-import mir.controllers.MessageController;
 import mir.routing.constants.Constants;
+import mir.routing.emulator.Acquirer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -31,7 +31,8 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
 
-        System.out.println(sendMessage("asdasd)"));
+        Acquirer acquirer = new Acquirer(Constants.Ports.ACQUIRER_MODULE);
+        acquirer.start();
     }
 
     @Bean
