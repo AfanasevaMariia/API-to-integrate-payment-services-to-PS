@@ -1,15 +1,18 @@
 package mir.routing.emulator;
 
+import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import mir.routing.exception.PortNotFoundException;
-
-import mir.models.ParsedMessage;
-import mir.parsing.routing.Router;
 
 import java.io.*;
 import java.net.*;
+import java.util.List;
+
+import mir.check.Checker;
+import mir.models.MessageError;
+import mir.models.ParsedMessage;
+import mir.parsing.routing.Router;
 
 import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
 import static mir.routing.constants.Constants.Ports.PLATFORM_MODULE;
@@ -41,7 +44,7 @@ public class Acquirer {
         return String.format("%s", response.toString());
     }
 
-    private static void handleGetRequest(HttpExchange exchange) throws IOException {
+    private static void handleGetRequest(HttpExchange exchange) throws IOException, ISOException, NoSuchFieldException, IllegalAccessException {
         String respText;
         OutputStream output;
 
@@ -51,15 +54,26 @@ public class Acquirer {
             // --- CORRECT HTTP REQUEST --- //
             String payloadContent = headers.getFirst(PAYLOAD_HEADER);
 
-            if (true/*CheckIfCorrect(payloadContent)*/) { // TODO: Модуль проверки сообщений.
+            ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
+
+            List<MessageError> errorsList = Checker.checkParsedMessage(parsedMessage);
+
+            if (errorsList.size() == 0) {
                 // --- CORRECT HEADER CONTENT --- //
-                respText = sendHttpRequest(PLATFORM_MODULE, payloadContent);
+                ParsedMessage parsedMessage1 = parsedMessage; // TODO: модуль формирования сообщений.
+
+                respText = sendHttpRequest(PLATFORM_MODULE, Router.getEncodedMessage(parsedMessage1));
 
                 exchange.sendResponseHeaders(200, respText.getBytes().length);
                 output = exchange.getResponseBody();
             } else {
                 // --- INCORRECT HEADER CONTENT --- //
-                respText = String.format("Incorrect \"%s\" header content format.\n", PAYLOAD_HEADER);
+                StringBuffer errors = new StringBuffer();
+
+                for (var error: errorsList) {
+                    errors.append(error.getMessage() + "\n");
+                }
+                respText = String.format("Incorrect \"%s\" header content format.\n %s", PAYLOAD_HEADER, errors.toString());
 
                 exchange.sendResponseHeaders(422, respText.getBytes().length);
                 output = exchange.getResponseBody();
@@ -88,7 +102,11 @@ public class Acquirer {
 
             server.createContext("/api", (exchange -> {
                 if ("GET".equals(exchange.getRequestMethod())) {
-                    handleGetRequest(exchange);
+                    try {
+                        handleGetRequest(exchange);
+                    } catch (Exception ex) {
+                        // TODO: обработать.
+                    }
                 } else {
                     handleWrongRequest(exchange);
                 }
