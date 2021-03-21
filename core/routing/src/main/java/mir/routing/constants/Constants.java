@@ -7,4 +7,8 @@ public final class Constants {
         public static final int PLATFORM_MODULE = 8011;
         public static final int ISSUER_MODULE = 8012;
     }
+
+    public final static class Headers {
+        public final static String PAYLOAD_HEADER = "Payload";
+    }
 }

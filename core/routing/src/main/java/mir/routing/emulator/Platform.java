@@ -3,33 +3,35 @@ package mir.routing.emulator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import mir.routing.constants.Constants;
 import mir.routing.exception.PortNotFoundException;
 
 import java.io.*;
 import java.net.*;
 
+import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
+import static mir.routing.constants.Constants.Ports.*;
 
-public class PlatformModule {
-    private final static String PAYLOAD_HEADER = "Payload";
+
+public class Platform {
     private static int port;
 
     private static int getSendPort(int mti) throws PortNotFoundException {
         switch (port) {
-            case Constants.Ports.ACQUIRER_MODULE:
-            case Constants.Ports.ISSUER_MODULE:
-                return Constants.Ports.PLATFORM_MODULE;
-            case Constants.Ports.PLATFORM_MODULE:
+            case ACQUIRER_MODULE:
+            case ISSUER_MODULE:
+                return PLATFORM_MODULE;
+            case PLATFORM_MODULE:
                 if (mti == 0100) {
-                    return Constants.Ports.ISSUER_MODULE;
+                    return ISSUER_MODULE;
                 } else /*if (mti == 0110)*/ {
-                    return Constants.Ports.ACQUIRER_MODULE;
+                    return ACQUIRER_MODULE;
                 }
             default:
                 // TODO: Change to Exception type, not RuntimeException.
                 throw new PortNotFoundException("There's no module with port provided");
         }
     }
+
 
     private static String sendHttpRequest(int sendPort, String payloadContent) throws IOException {
         // Configure request.
@@ -66,9 +68,9 @@ public class PlatformModule {
             String payloadContent = headers.getFirst(PAYLOAD_HEADER);
 
             if (true/*CheckIfCorrect(payloadContent)*/) { // TODO: Модуль проверки сообщений.
-                respText = sendHttpRequest(Constants.Ports.ISSUER_MODULE, payloadContent + " from platform");
+                respText = sendHttpRequest(ISSUER_MODULE, payloadContent);
 
-                respText += " from platform";
+                // TODO: Parsing.
 
                 exchange.sendResponseHeaders(200, respText.getBytes().length);
                 output = exchange.getResponseBody();
@@ -120,12 +122,7 @@ public class PlatformModule {
         }
     }
 
-    public PlatformModule(int port) {
+    public Platform(int port) {
         this.port = port;
-    }
-
-    public static void main(String[] args) {
-        PlatformModule platformModule = new PlatformModule(Constants.Ports.PLATFORM_MODULE);
-        platformModule.start();
     }
 }

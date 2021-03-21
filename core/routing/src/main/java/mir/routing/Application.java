@@ -1,7 +1,7 @@
 package mir.routing;
 
-import mir.controllers.MessageController;
 import mir.routing.constants.Constants;
+import mir.routing.emulator.Platform;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -31,7 +31,8 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
 
-        System.out.println(sendMessage("asdasd)"));
+        Platform platform = new Platform(Constants.Ports.PLATFORM_MODULE);
+        platform.start();
     }
 
     @Bean
