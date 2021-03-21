@@ -19,12 +19,15 @@ public class ParsedElement {
     // are represented by bytes 8 bits each.
     public final static String separatorBin = "%";
 
-    // Binary data or ASCII symbols.
+    // Binary data ("%") or ASCII symbols ("^").
     private String type;
     // From 01 to ZZ in the hex system.
     private int id;
     // The length of the direct content without the type, the id, the length.
-    private int length;
+    // According to the MIP.
+    private int lengthMIP;
+    // Is different from the lengthMIP if the type of the field is "%".
+    private int lengthReal;
     // Content.
     private String content;
 
@@ -33,31 +36,40 @@ public class ParsedElement {
         return type;
     }
 
-    public void setType(String dataFormat) throws ISOException {
+    public void setType(String dataFormat) {
         if (dataFormat.compareTo(separatorSym) == 0)
             type = separatorSym;
-        else {
-            if (dataFormat.compareTo(separatorBin) == 0)
-                type = separatorBin;
-            else
-                throw new ISOException("This type of elements does not exist!");
-        }
+            // dataFormat.compareTo(separatorBin) == 0.
+        else
+            type = separatorBin;
     }
 
     public int getId() {
         return id;
     }
 
+    public String getHexId() { return StringUtil.intToHexString(id); }
+
     public void setId(int id) {
         this.id = id;
     }
 
-    public int getLength() {
-        return length;
+    public int getLengthMIP() {
+        return lengthMIP;
     }
 
-    public void setLength(int length) {
-        this.length = length;
+    public int getLengthReal() {
+        return lengthReal;
+    }
+
+    public void setLengthReal(int lengthReal) {
+        this.lengthReal = lengthReal;
+    }
+
+    public String getHexLengthMIP() { return StringUtil.intToHexString(lengthMIP); }
+
+    public void setLengthMIP(int lengthMIP) {
+        this.lengthMIP = lengthMIP;
     }
 
     public String getContent() {
@@ -89,13 +101,13 @@ public class ParsedElement {
             // idStr.length() == 2
             elementStr.append("30" + idStr);
         // The length.
-        String lengthStr = StringUtil.asciiToHex(Integer.toString(id));
+        String lengthStr = StringUtil.asciiToHex(Integer.toString(lengthMIP));
         if (lengthStr.length() == 4)
             elementStr.append(lengthStr);
         else
             // lengthStr.length() == 2
             elementStr.append("30" + lengthStr);
-        // The body.
+        // The content.
         elementStr.append(StringUtil.asciiToHex(content));
         return elementStr.toString();
     }
@@ -116,12 +128,12 @@ public class ParsedElement {
             // idStr.length() == 1
             elementStr.append("0" + id);
         // The length.
-        String lengthStr = Integer.toString(length);
+        String lengthStr = Integer.toString(lengthMIP);
         if (lengthStr.length() == 2)
-            elementStr.append(length);
+            elementStr.append(lengthMIP);
         else
             // lengthStr.length() == 1
-            elementStr.append("0" + length);
+            elementStr.append("0" + lengthMIP);
         // The body.
         elementStr.append(content);
         return elementStr.toString();

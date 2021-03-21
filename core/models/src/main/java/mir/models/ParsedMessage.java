@@ -1,8 +1,14 @@
 package mir.models;
 
 import com.fasterxml.jackson.annotation.*;
+import com.imohsenb.ISO8583.enums.FIELDS;
+import mir.models.check_annotations.AnyOf;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
@@ -15,10 +21,14 @@ public class ParsedMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @AnyOf(values = {"0100", "0110", "0400", "0410"})
     private String mti;
+    // Only hexadecimal numbers.
+    // The first symbol can be equal to only zero because the secondary bitmap is not used in this project.
     private String hex;
     private boolean edited;
     private LocalDateTime transactionDate;
+    @Pattern(regexp = "[0-9]{6}")
     private String transactionNumber;
 
     @Transient

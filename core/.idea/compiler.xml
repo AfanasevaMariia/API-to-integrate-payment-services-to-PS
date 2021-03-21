@@ -13,12 +13,14 @@
         <module name="repositories" />
         <module name="controllers" />
         <module name="services" />
+        <module name="check" />
         <module name="parsing" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="check" options="-parameters" />
       <module name="controllers" options="-parameters" />
       <module name="core" options="-parameters" />
       <module name="lib" options="-parameters" />

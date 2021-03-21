@@ -6,6 +6,7 @@ import com.imohsenb.ISO8583.enums.FIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
+import mir.models.check_annotations.AnyOf;
 
 import java.util.HashMap;
 
@@ -13,10 +14,19 @@ import java.util.HashMap;
 @NoArgsConstructor
 public class ParsedField {
 
+    @AnyOf(values = {"2", "4", "12", "13", "23", "42", "48", "49", "63"})
     private int id;
     private String type;
+    // According to the MIP.
+    private int lengthMIP;
+    // Which the field has in the message.
+    // Is different from the lengthMIP if the type of the field is "n" or "b".
+    private int lengthReal;
     private String content;
+    private boolean hasSubfields = false;
     private boolean hasElements = false;
+
+    private HashMap<Integer, ParsedSubfield> subfields = new HashMap<Integer, ParsedSubfield>();
     private HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
 
     // Getters and Setters.
@@ -36,6 +46,22 @@ public class ParsedField {
         this.type = type;
     }
 
+    public int getLengthMIP() {
+        return lengthMIP;
+    }
+
+    public void setLengthMIP(int lengthMIP) {
+        this.lengthMIP = lengthMIP;
+    }
+
+    public int getLengthReal() {
+        return lengthReal;
+    }
+
+    public void setLengthReal(int lengthReal) {
+        this.lengthReal = lengthReal;
+    }
+
     public String getContent() {
         return content;
     }
@@ -44,12 +70,24 @@ public class ParsedField {
         this.content = content;
     }
 
+    public boolean getHasSubfields() { return this.hasSubfields;}
+
+    public void setHasSubfields(boolean hasSubfields) { this.hasSubfields = hasSubfields;}
+
     public boolean getHasElements() {
         return this.hasElements;
     }
 
     public void setHasElements(boolean hasElements) {
         this.hasElements = hasElements;
+    }
+
+    public HashMap<Integer, ParsedSubfield> getSubfields() {
+        return subfields;
+    }
+
+    public void setSubfields(HashMap<Integer, ParsedSubfield> subfields) {
+        this.subfields = subfields;
     }
 
     public HashMap<Integer, ParsedElement> getElements() {
