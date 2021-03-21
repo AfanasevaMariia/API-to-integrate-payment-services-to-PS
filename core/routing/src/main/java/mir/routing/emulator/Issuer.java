@@ -1,18 +1,22 @@
 package mir.routing.emulator;
 
+import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import mir.models.ParsedMessage;
+import mir.parsing.routing.Router;
 
 import java.io.*;
 import java.net.*;
 
 import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
+import static mir.routing.constants.Constants.Ports.ISSUER_MODULE;
 
 public class Issuer {
     private static int port;
 
-    private static void handleGetRequest(HttpExchange exchange) throws IOException {
+    private static void handleGetRequest(HttpExchange exchange) throws IOException, ISOException {
         String respText;
         OutputStream output;
 
@@ -22,18 +26,13 @@ public class Issuer {
             // --- CORRECT HTTP REQUEST --- //
             String payloadContent = headers.getFirst(PAYLOAD_HEADER);
 
-            if (true/*CheckIfCorrect(payloadContent)*/) { // TODO: Модуль проверки сообщений.
-                respText = payloadContent; // TODO: Parsing.
+            ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
+            ParsedMessage parsedMessage1 = parsedMessage; // TODO: модуль формирования сообщения.
 
-                exchange.sendResponseHeaders(200, respText.getBytes().length);
-                output = exchange.getResponseBody();
-            } else {
-                // --- INCORRECT HEADER CONTENT --- //
-                respText = String.format("Incorrect \"%s\" header content format.\n", PAYLOAD_HEADER);
+            respText = Router.getEncodedMessage(parsedMessage1);
 
-                exchange.sendResponseHeaders(422, respText.getBytes().length);
-                output = exchange.getResponseBody();
-            }
+            exchange.sendResponseHeaders(200, respText.getBytes().length);
+            output = exchange.getResponseBody();
         } else {
             // --- NO HEADER IN HTTP REQUEST --- //
             respText = String.format("No \"%s\" header found in the request. Add header to get response.\n", PAYLOAD_HEADER);
@@ -59,7 +58,11 @@ public class Issuer {
 
             server.createContext("/api", (exchange -> {
                 if ("GET".equals(exchange.getRequestMethod())) {
-                    handleGetRequest(exchange);
+                    try {
+                        handleGetRequest(exchange);
+                    } catch (ISOException e) {
+                        // TODO: обработать.
+                    }
                 } else {
                     handleWrongRequest(exchange);
                 }
