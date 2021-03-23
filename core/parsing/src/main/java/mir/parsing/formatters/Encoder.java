@@ -88,18 +88,10 @@ public class Encoder {
             parsedField.setType(field.getType());
             // Setting of the content.
             parsedField.setContent(isoMessage.getStringField(fieldId, true));
-            // TODO: remove println.
-            System.out.println("content before the conversion= " + parsedField.getContent());
-            // TODO: check the correctness of the method below.
             parsedField.setSubfields(getContentOfSubfields(parsedField));
             parsedField.setElements(getContentOfElements(parsedField));
-            // TODO: remove println.
-            System.out.println("content after the conversion= " + parsedField.getContent());
             // Setting of the lengthMIP.
             parsedField.setLengthMIP(getLengthMIPOfParsedField(isoMessage, parsedField));
-            // Todo: remove two links below.
-            // Setting of the lengthRealBytes.
-            //parsedField.setLengthInSymbolsReal(getLengthRealBytesForParsedField(isoMessage, parsedField, field));
 
             parsedMessage.addField(parsedField);
         }
@@ -376,8 +368,8 @@ public class Encoder {
             (ParsedField parsedField, SUBFIELDS subfieldSample, int lengthRealOfParsedSubfield) {
         int beginInd = subfieldSample.getBeginInd();
         // The content of the subfield has been converted from the hex format already.
-        if (parsedField.getType().compareTo("n") == 0 ||
-                parsedField.getType().compareTo("b") == 0)
+        if (subfieldSample.getType().compareTo("n") == 0 ||
+            subfieldSample.getType().compareTo("b") == 0)
             return parsedField.getContent().substring(beginInd, beginInd + lengthRealOfParsedSubfield);
             // The content of the subfield needs in the conversion from the hex format.
         else {

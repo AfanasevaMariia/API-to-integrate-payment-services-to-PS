@@ -611,10 +611,8 @@ public class Checker {
         // Match of the type value of the parsedElement with the type according to MIP.
         String rightType = ELEMENTS.valueOf(fieldId, elemId).getType();
         String currentType = parsedElement.getType();
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(rightType);
-        java.util.regex.Matcher matcher = pattern.matcher(currentType);
         // Match of the right type and the current type.
-        if (!matcher.matches())
+        if (currentType.compareTo(rightType) != 0)
             errors.add(new MessageError("The type of the content of the element №"
                     + elemId + "must be " + rightType + "!"));
         // Match of the type of the right type and the content type.
@@ -631,7 +629,7 @@ public class Checker {
         String content = parsedElement.getContent();
         // Binary data.
         if (rightType.compareTo("%") == 0)
-            errors = checkCertainTypeOfElementContent(id, content, "[0-9A-F]",
+            errors = checkCertainTypeOfElementContent(id, content, "[0-9A-F]+",
                     "hexadecimal numbers", errors);
             // rightType.compareTo("^") == 0.
             // ASCII symbols.
@@ -696,6 +694,7 @@ public class Checker {
         return currentContentLength;
     }
 
+    // Todo: check that it can be removed and remove.
     /*
     Returns true if the error with the transmitted message is contained in the errors list.
     Else returns false.

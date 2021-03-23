@@ -75,7 +75,9 @@ public enum FIELDS {
     F61_Reserved_Private                (61, "ans", 1,999,  false, "LLL", true, 10, false),
     // The 62th field is missed in MIP.
     // The minLength must be refined before using this field!!!
-    F63_Reserved_Private                (63, "ans", 1, 999,  false, "LLL", true, 3, false),
+    // Unfixed variant from the MIP: F63_Reserved_Private                (63, "ans", 1, 999,  false, "LLL", true, 3, false),
+    // Fixed variant for the project:
+    F63_Reserved_Private                (63, "ans", 23, 23,  true, null, true, 3, false),
     // The 64th field is missed in MIP but is necessary for BaseMessageClassBuilder Class of the ISO Lib.
     F64_MAC                             (64, "b",   16, 16,   true,  null, false, 0, false);
     // The fields with bigger numbers are not considered in this project.

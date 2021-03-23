@@ -13,8 +13,8 @@ public enum SUBFIELDS {
     F1_POSTerminalPINEntryCapability        (22,2, "n",  1, true, null,  2),
     // Required for the project.
     F1_NetworkIdentifier                    (63,1, "an",  4, true, null,  0),
-    F2_TransactionReferenceNumber           (63,2, "n",  16, true, null,  4),
-    F3_CardProductID                        (63,3, "ans", 3, true, null, 20);
+    F2_TransactionReferenceNumber           (63,2, "n",  16, true, null,  8),
+    F3_CardProductID                        (63,3, "ans", 3, true, null, 24);
     // Required for the project. The end.
 
     private final int fieldNum;
@@ -23,6 +23,8 @@ public enum SUBFIELDS {
     private final int length;
     private final boolean fixed;
     private final String format;
+    // According to the real position in the field.
+    // Can be different from the MIP value.
     private final int beginInd;
 
     SUBFIELDS(int fieldNum, int subFieldNum, String type, int length, boolean fixed, String format, int beginInd) {

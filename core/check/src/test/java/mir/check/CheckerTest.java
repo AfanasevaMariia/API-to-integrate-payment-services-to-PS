@@ -46,7 +46,7 @@ class CheckerTest {
     @Test
     void testParsedMessageMtiCorrect() throws IOException, ISOException, NoSuchFieldException, IllegalAccessException {
         // 3, 48.
-         String probaMessage = "0100200000000001000092000000092536313034696E"; //
+        // String probaMessage = "0100200000000001000092000000092536313034696E"; // +
 
         // Test of the table.
         // 22 (n, 3)
@@ -64,6 +64,8 @@ class CheckerTest {
         // 48 (ans, 6-999, LLL)
         // The 97th subfield of the 48th field.
         // String probaMessage = "01000000000000010000000925363130390999999999"; // len of the 48th field = 0009. // +
+        // The 63th field. The 2th subfield.
+        String probaMessage = "010000000000000000023030303023232323232323234D4D4D"; //
         ISOMessage isoMessageProba = null;
         try {
             isoMessageProba = ISOMessageBuilder.Unpacker()
@@ -79,7 +81,7 @@ class CheckerTest {
             return;
         }
         System.out.println(isoMessageProba.toString());
-        int fieldId = 48;
+        /*int fieldId = 48;
         String fieldStr = null;
         if (FIELDS.valueOf(fieldId).getType().compareTo("n") == 0 ||
                 FIELDS.valueOf(fieldId).getType().compareTo("b") == 0) {
@@ -88,18 +90,7 @@ class CheckerTest {
         }
         else
             fieldStr = StringUtil.hexToAscii(isoMessageProba.getStringField(fieldId));
-        System.out.println(fieldStr);
-
-        //System.out.println(isoMessageProba.getStringField(48));
-
-        // The 48th field. Without the 2th subfield of tfe 63th field.
-        //String initialHex = "0100000000000001000000165E303130333131315E30333033313135"; // LL before the 48th field.
-        // The 97th subfield of the 48th field.
-        //String initialHex = "0100000000000001000000092536313034696E666F"; // len of the 48th field = 0009.
-
-        // String encodedMessageJSON = generateEncodedMessageJSON(initialHex);
-
-        //String encodedMessageJSON = generateEncodedMessageJSON(probaMessage);
+        System.out.println(fieldStr);*/
 
         ParsedMessage parsedMessage = Router.getParsedMessage(probaMessage);
         parsedMessage.setTransactionDate(LocalDateTime.now());
