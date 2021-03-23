@@ -51,9 +51,9 @@ class CheckerTest {
 
         // Test of the table.
         // 22 (n, 3)
-        String probaMessage = "010000000400000000008108"; // +
+        //String probaMessage = "010000000400000000008108"; // +
         // 32 (n, 1-11, LL) - Here the length of a number is twice less than its length according to the MIP (1 num = 1/2 byte).
-        // String probaMessage = "01000000000100000000030123"; // +
+         String probaMessage = "01000000000100000000030123"; //
         // 52 (b, 8)
         // String probaMessage = "0100000000000000100088888888"; //
         // 39 (an, 2) - Here the length of a number is equal to its length according to the MIP (1 num = 1 byte).
@@ -79,8 +79,8 @@ class CheckerTest {
             System.out.println(ex.getMessage());
             return;
         }
-        //System.out.println(isoMessageProba.toString());
-        int fieldId = 22;
+        System.out.println(isoMessageProba.toString());
+        int fieldId = 32;
         String fieldStr = null;
         if (FIELDS.valueOf(fieldId).getType().compareTo("n") == 0 ||
                 FIELDS.valueOf(fieldId).getType().compareTo("b") == 0) {
@@ -355,7 +355,8 @@ class CheckerTest {
             System.out.println("\t\t\tid = " + parsedField.getId());
             System.out.println("\t\t\ttype = " + parsedField.getType());
             System.out.println("\t\t\tlengthMIP = " + parsedField.getLengthMIP());
-            System.out.println("\t\t\tlengthReal = " + parsedField.getLengthReal());
+            // Todo: remove the print.
+            // System.out.println("\t\t\tlengthReal = " + parsedField.getLengthInSymbolsReal());
             System.out.println("\t\t\tcontent = " + parsedField.getContent());
             System.out.println("\t\t\thasSubfields = " + parsedField.getHasSubfields());
             System.out.println("\t\t\thasElements = " + parsedField.getHasElements());
@@ -373,7 +374,8 @@ class CheckerTest {
             System.out.println("\t\t\t\t\tid = " + parsedSubfield.getId());
             System.out.println("\t\t\t\t\ttype = " + parsedSubfield.getType());
             System.out.println("\t\t\t\t\tlengthMIP = " + parsedSubfield.getLengthMIP());
-            System.out.println("\t\t\t\t\tlengthReal = " + parsedSubfield.getLengthReal());
+            // Todo: remove this print.
+            //System.out.println("\t\t\t\t\tlengthReal = " + parsedSubfield.getLengthInSymbolsReal());
             System.out.println("\t\t\t\t\tcontent = " + parsedSubfield.getContent());
         }
     }

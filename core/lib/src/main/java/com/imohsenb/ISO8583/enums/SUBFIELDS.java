@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum SUBFIELDS {
-    //                                      |fieldNum   |subFieldNum      |type      |length      |fixed     |format   |beginInd
+    //                                      |fieldNum   |subFieldNum    |type   |lengthSignificantSymbols   |fixed   |format    |beginInd
     F1_POSTerminalPANEntryMode              (22,1, "n",  2, true, null,  0),
     F1_POSTerminalPINEntryCapability        (22,2, "n",  1, true, null,  2),
     // Using.
@@ -37,14 +37,6 @@ public enum SUBFIELDS {
         for (SUBFIELDS _subfields : SUBFIELDS.values()) {
             map.put(_subfields.getKeyForSubfield(), _subfields);
         }
-    }
-
-    public int getFieldNum() {
-        return this.fieldNum;
-    }
-
-    public int getSubFieldNum() {
-        return subFieldNum;
     }
 
     private KeyForFieldComponent getKeyForSubfield() {

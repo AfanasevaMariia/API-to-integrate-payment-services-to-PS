@@ -25,7 +25,7 @@ public class Checker {
     public static List<MessageError> checkParsedMessage
             (ParsedMessage parsedMessage) throws NoSuchFieldException, IllegalAccessException {
         List<MessageError> errors = new ArrayList<>();
-        checkLengthAndTypeOfPrimaryBitmap(parsedMessage, errors);
+        errors = checkLengthAndTypeOfPrimaryBitmap(parsedMessage, errors);
         // The check of the presence of the errors of the primary bitmap.
         // If they are there, the further check won't happen.
         for (MessageError error : errors) {
@@ -42,7 +42,8 @@ public class Checker {
         errors = checkFieldsOnAnnotations(parsedMessage, errors);
         errors = checkTransactionDate(parsedMessage, errors);
         errors = checkParsedFields(parsedMessage, errors);
-        errors = checkExceptFieldsOfPrimaryBitmap(parsedMessage, errors);
+        // TODO: remove the line below.
+        //errors = checkExceptFieldsOfPrimaryBitmap(parsedMessage, errors);
         return errors;
     }
 
@@ -156,11 +157,12 @@ public class Checker {
         return errors;
     }
 
+    // TODO: set the conversion from hex to bin format.
     /*
     Checks that the primary bitmap has not except fields which are not foreseen by the Lib.
     Expects that the length and type of the symbols are correct.
     */
-    private static List<MessageError> checkExceptFieldsOfPrimaryBitmap
+    /*private static List<MessageError> checkExceptFieldsOfPrimaryBitmap
     (ParsedMessage parsedMessage, List<MessageError> errors) {
         String hex = parsedMessage.getHex();
         String primaryBitmap = hex.substring(4, 20);
@@ -175,7 +177,7 @@ public class Checker {
             }
         }
         return errors;
-    }
+    }*/
 
     /*
     Checks fields on correctness.
@@ -186,6 +188,15 @@ public class Checker {
         // MIP fields of the parsedMessage.
         HashMap<Integer, ParsedField> fields = parsedMessage.getFields();
         for (ParsedField parsedField : fields.values()) {
+            // TODO: check that links below can be removed and these.
+            /*int fieldId = parsedField.getId();
+            if (FIELDS.valueOf(parsedField.getId()) == null) {
+                errors.add(new MessageError("The information about the field №" + fieldId +
+                        " is not provided by the Lib on the strength of" +
+                        " the project features or because the MIP does not suggest this!"));
+                continue;
+            }*/
+            // The information of the field is provided by the Lib.
             errors = checkAnyOfAnnotation(parsedField, parsedField.getClass().getDeclaredField("id"), errors);
             errors = checkTypeOfParsedField(parsedField, errors);
             errors = checkLengthOfParsedField(parsedField, errors);
@@ -265,37 +276,6 @@ public class Checker {
     The lengthMIP and length of the content of the field are checking.
     Note, the lengthReal is not considered because this is set during the parsing.
     */
-    /*private static List<MessageError> checkLengthOfParsedField
-            (ParsedField parsedField, List<MessageError> errors) {
-        // The boards of the right length for the field with this id according to MPI.
-        int id = parsedField.getId();
-        FIELDS field = FIELDS.valueOf(id);
-        int rightMinLengthMIP = field.getMinLength();
-        int rightMaxLengthMIP = field.getMaxLength();
-        // Comparison with the lengthMIP of the parsedField.
-        int currentLengthMIP = parsedField.getLengthMIP();
-        if (!(rightMinLengthMIP <= currentLengthMIP && currentLengthMIP <= rightMaxLengthMIP))
-            errors.add(new MessageError("The length value of the field  №" + id + " is not correct!"));
-        // Check of the real length of the content of the parsedField.
-        int currentContentLength = parsedField.getContent().length() / 2; // Every symbol takes 1 hexadecimal symbol.
-        // The compressed format.
-        if (parsedField.getType().compareTo("n") == 0 ||
-            parsedField.getType().compareTo("b") == 0) {
-            currentContentLength *= 2; // Every symbol takes 2 hexadecimal symbols.
-            // The first additional zero is considered.
-            if (field.getMaxLength() % 2 != 0)
-                currentContentLength -= 1;
-        }
-        if (!(rightMinLengthMIP <= currentContentLength && currentContentLength <= rightMaxLengthMIP))
-            errors.add(new MessageError("The length of the content of the field №" + id + " is not correct!"));
-        return errors;
-    }*/
-
-    /*
-    Checks the length of the transmitted parsedField.
-    The lengthMIP and length of the content of the field are checking.
-    Note, the lengthReal is not considered because this is set during the parsing.
-    */
     private static List<MessageError> checkLengthOfParsedField
     (ParsedField parsedField, List<MessageError> errors) {
         int id = parsedField.getId();
@@ -306,24 +286,27 @@ public class Checker {
         // Comparison with the lengthMIP of the parsedField.
         int currentLengthMIP = parsedField.getLengthMIP();
         if (!(rightMinLengthMIP <= currentLengthMIP && currentLengthMIP <= rightMaxLengthMIP))
-            errors.add(new MessageError("The length value of the field  №" + id + " is not correct!"));
+            errors.add(new MessageError("The length value of the field №" + id + " is not correct!"));
         // Check of the real length of the content of the parsedField.
         if (!field.getHasSubfields() && !field.getHasElements())
-            errors = checkLengthOfParsedFieldWithoutSubfieldsAndElements
+            errors = checkContentLengthOfParsedFieldWithoutSubfieldsAndElements
                     (parsedField, rightMinLengthMIP, rightMaxLengthMIP, errors);
         else {
             if (field.getHasSubfields())
-                errors = checkLengthOfParsedFieldWithSubfields
+                errors = checkContentLengthOfParsedFieldWithSubfields
                         (parsedField, rightMinLengthMIP, rightMaxLengthMIP, errors);
-                // field.getHasElements().
+            // field.getHasElements().
             else
-                errors = checkLengthOfParsedFieldWithElements
+                errors = checkContentLengthOfParsedFieldWithElements
                         (parsedField, rightMinLengthMIP, rightMaxLengthMIP, errors);
         }
         return errors;
     }
 
-    private static List<MessageError> checkLengthOfParsedFieldWithoutSubfieldsAndElements
+    /*
+    Here the content of the parsedField is converted from hex.
+     */
+    private static List<MessageError> checkContentLengthOfParsedFieldWithoutSubfieldsAndElements
             (ParsedField parsedField, int rightMinLengthMIP, int rightMaxLengthMIP, List<MessageError> errors) {
         int id = parsedField.getId();
         FIELDS field = FIELDS.valueOf(id);
@@ -331,7 +314,7 @@ public class Checker {
         int currentContentLength = parsedField.getContent().length();
         // The first additional zero is considered.
         if (parsedField.getType().compareTo("n") == 0 ||
-                parsedField.getType().compareTo("b") == 0) {
+            parsedField.getType().compareTo("b") == 0) {
             if (field.getMaxLength() % 2 != 0)
                 currentContentLength -= 1;
         }
@@ -343,12 +326,13 @@ public class Checker {
     /*
     Checks of the real length of the content of the parsedField with subfields.
     */
-    private static List<MessageError> checkLengthOfParsedFieldWithSubfields
+    private static List<MessageError> checkContentLengthOfParsedFieldWithSubfields
     (ParsedField parsedField, int rightMinLengthMIP, int rightMaxLengthMIP, List<MessageError> errors) {
         int fieldId = parsedField.getId();
         HashMap<Integer, ParsedSubfield> subfields = parsedField.getSubfields();
+        // TODO: check that links below can be deleted.
         // Choice of only the subfields the information of which is provided by the Lib.
-        HashMap<Integer, ParsedSubfield> knownSubfields = new HashMap<>();
+        /*HashMap<Integer, ParsedSubfield> knownSubfields = new HashMap<>();
         for (ParsedSubfield parsedSubfield : subfields.values()) {
             int subfieldId = parsedSubfield.getId();
             SUBFIELDS subfield = SUBFIELDS.valueOf(fieldId, subfieldId);
@@ -356,12 +340,13 @@ public class Checker {
                 errors.add(new MessageError("The subfield №" + subfieldId + " of the field №" + fieldId +
                         " is not provided by the Lib on the strength of the project " +
                         " or because the MIP does not suggest this!"));
-                // The information about the parsedSubfield is provided by the Lib.
+            // The information about the parsedSubfield is provided by the Lib.
             else
                 knownSubfields.put(subfieldId, subfields.get(subfieldId));
-        }
+        }*/
+        // TODO: the end.
         // Check of the real length of the content of the parsedField.
-        int currentContentLengthMIP = getContentLengthMIPOfParsedFieldWithSubfields(parsedField, knownSubfields);
+        int currentContentLengthMIP = getContentLengthMIPOfParsedFieldWithSubfields(parsedField, subfields);
         if (!(rightMinLengthMIP <= currentContentLengthMIP && currentContentLengthMIP <= rightMaxLengthMIP))
             errors.add(new MessageError("The content of the field №" + fieldId + "is not correct!"));
         return errors;
@@ -378,7 +363,7 @@ public class Checker {
         for (ParsedSubfield parsedSubfield : knownSubfields.values()) {
             int subfieldId = parsedSubfield.getId();
             SUBFIELDS subfield = SUBFIELDS.valueOf(fieldId, subfieldId);
-            currentContentLength += getCurrentContentLengthMIPOfParsedSubfield(parsedSubfield, subfield);
+            currentContentLength += getContentLengthMIPOfParsedSubfield(parsedSubfield, subfield);
         }
         return currentContentLength;
     }
@@ -386,12 +371,13 @@ public class Checker {
     /*
     Check of the real length of the content of the parsedField with elements.
     */
-    private static List<MessageError> checkLengthOfParsedFieldWithElements
+    private static List<MessageError> checkContentLengthOfParsedFieldWithElements
     (ParsedField parsedField, int rightMinLengthMIP, int rightMaxLengthMIP, List<MessageError> errors) {
         int fieldId = parsedField.getId();
         HashMap<Integer, ParsedElement> elements = parsedField.getElements();
+        // TODO : check that the links below can be removed.
         // The elements the information of which is provided by the Lib.
-        HashMap<Integer, ParsedElement> knownElements = new HashMap<>();
+        /*HashMap<Integer, ParsedElement> knownElements = new HashMap<>();
         for (ParsedElement parsedElement : elements.values()) {
             int elemId = parsedElement.getId();
             ELEMENTS element = ELEMENTS.valueOf(fieldId, elemId);
@@ -399,11 +385,12 @@ public class Checker {
                 errors.add(new MessageError("The element №" + elemId + " of the field №" + fieldId +
                         " is not provided by the Lib on the strength of the project" +
                         " or because the MIP does not suggest this!"));
-                // The information of the element is provided by the Lib.
+            // The information of the element is provided by the Lib.
             else
                 knownElements.put(elemId, parsedElement);
-        }
-        int currentContentLength = getContentLengthMIPOfParsedFieldWithElements(knownElements);
+        }*/
+        // TODO: the end.
+        int currentContentLength = getContentLengthMIPOfParsedFieldWithElements(elements);
         if (!(rightMinLengthMIP <= currentContentLength && currentContentLength <= rightMaxLengthMIP))
             errors.add(new MessageError("The content of the field №" + fieldId + "is not correct!"));
         return errors;
@@ -413,13 +400,6 @@ public class Checker {
             (HashMap<Integer, ParsedElement> knownElements) {
         int currentContentLength = 0;
         for (ParsedElement parsedElement : knownElements.values()) {
-            /*int elemId = parsedElement.getId();
-            ELEMENTS element = ELEMENTS.valueOf(fieldId, elemId);
-            if (element == null)
-                errors.add(new MessageError("The element №" + elemId + " of the field №" + fieldId +
-                                            "is not provided by the Lib on the strength of the project " +
-                                            " or because the MIP does not suggest this!"));
-            else*/
             currentContentLength += getCurrentContentLengthMIPOfParsedElement(parsedElement);
         }
         return currentContentLength;
@@ -460,7 +440,7 @@ public class Checker {
                 errors.add(new MessageError("The subfields of the field №" + fieldId +
                         " is not provided by the Lib on the strength of the project" +
                         " or because the MIP does not suggest this!"));
-                // The information about the parsedSubfield is provided by the Lib.
+            // The information about the parsedSubfield is provided by the Lib.
             else {
                 checkTypeOfParsedSubfield(parsedField, parsedSubfield, subfieldSample, errors);
                 // TODO: add to the documentation that only fixed subfields are considered!
@@ -537,7 +517,7 @@ public class Checker {
     /*
     Checks the length of the transmitted parsedSubfield.
     The lengthMIP and lengthMIP of the content of the field are checking.
-    Note, the lengthReal is not considered because is set during parsing.
+    Note, the lengthReal is not considered because this is set during parsing.
     Note, unfixed subfields are not considered!
     (on the strength of teh Lib).
     */
@@ -555,7 +535,7 @@ public class Checker {
                     " of the field  №" + fieldId + " is not correct!"));
         // Check of the lengthMIP of the content of the parsedField.
         int currentContentLengthMIP
-                = getCurrentContentLengthMIPOfParsedSubfield(parsedSubfield, subfieldSample);
+                = getContentLengthMIPOfParsedSubfield(parsedSubfield, subfieldSample);
         if (currentContentLengthMIP != rightLengthMIP)
             errors.add(new MessageError("The length of the content of the subfield №" + subfieldId +
                     " of the field №" + fieldId + " is not correct!"));
@@ -565,12 +545,12 @@ public class Checker {
     /*
     Returns the current length (the real quantity of symbols) of the content of the parsedSubfield.
     */
-    private static int getCurrentContentLengthMIPOfParsedSubfield
+    private static int getContentLengthMIPOfParsedSubfield
     (ParsedSubfield parsedSubfield, SUBFIELDS subfieldSample) {
         int currentContentLength = parsedSubfield.getContent().length();
         // The first additional zero is considered.
         if (parsedSubfield.getType().compareTo("n") == 0 ||
-                parsedSubfield.getType().compareTo("b") == 0) {
+            parsedSubfield.getType().compareTo("b") == 0) {
             if (subfieldSample.getLength() % 2 != 0)
                 currentContentLength -= 1;
         }
@@ -690,29 +670,11 @@ public class Checker {
         int currentContentLength = parsedElement.getContent().length();
         // The first additional zero is considered.
         if (parsedElement.getType().compareTo("%") == 0) {
-            if (parsedElement.getLengthReal() % 2 != 0)
+            if (parsedElement.getLengthMIP() % 2 != 0)
                 currentContentLength -= 1;
         }
         return currentContentLength;
     }
-
-    /*private static List<MessageError> checkIdOfParsedSubfieldId(FIELDS field, int subfieldId, List<MessageError> errors) {
-        int fieldId = field.getNum();
-        if (subfieldId > field.getMaxSubfieldsId()) {
-            errors.add(new MessageError("The field №" + fieldId + " has not a subfield №" + subfieldId + "!"));
-            return errors;
-        }
-        SUBFIELDS subfieldSample = SUBFIELDS.valueOf(fieldId, subfieldId);
-        // The information about the subfield is not provided by the Lib.
-        if (subfieldSample == null) {
-            // TODO: add the feature below to the documentation.
-            errors.add(new MessageError("The subfields of the field №" + fieldId +
-                    "is not provided by the Lib on the strength of the project!"));
-            return errors;
-        }
-        return errors;
-    }*/
-
 
     /*
     Returns true if the error with the transmitted message is contained in the errors list.

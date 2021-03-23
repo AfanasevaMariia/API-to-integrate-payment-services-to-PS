@@ -1,5 +1,6 @@
 package com.imohsenb.ISO8583.entities;
 
+import com.imohsenb.ISO8583.enums.ELEMENTS;
 import com.imohsenb.ISO8583.enums.FIELDS;
 import com.imohsenb.ISO8583.enums.SUBFIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
@@ -19,8 +20,8 @@ import java.util.TreeMap;
  */
 public class ISOMessage {
 
-    private TreeMap<Integer, byte[]> dataElements = new TreeMap<>();
-    private TreeMap<Integer, Integer> lengths = new TreeMap<>();
+    private TreeMap<Integer, byte[]> fields = new TreeMap<>();
+    private TreeMap<Integer, Integer> quantitiesOfSignificantSumbols = new TreeMap<>();
 
     private boolean isNil = true;
     private String message;
@@ -77,9 +78,9 @@ public class ISOMessage {
      * @throws ISOException throws exception
      */
     public byte[] getField(int fieldNo) throws ISOException {
-        if (!dataElements.containsKey(fieldNo))
+        if (!fields.containsKey(fieldNo))
             throw new ISOException("Field No " + fieldNo + " does not exists");
-        return dataElements.get(fieldNo);
+        return fields.get(fieldNo);
     }
 
     /**
@@ -89,7 +90,7 @@ public class ISOMessage {
      * @return returns field value in byte array format
      */
     public byte[] getField(FIELDS field) {
-        return dataElements.get(field.getNum());
+        return fields.get(field.getNum());
     }
 
     /**
@@ -145,16 +146,16 @@ public class ISOMessage {
         return temp;
     }
 
-    public TreeMap<Integer, byte[]> getDataElements() { return dataElements; }
+    public TreeMap<Integer, byte[]> getFields() { return fields; }
 
     /*
     Returns the length of the field with the transmitted id.
     If this field id is not contained in the length, the method returns -1.
      */
     public int getFieldLength(int fieldId) {
-        if (!lengths.containsKey(fieldId))
+        if (!quantitiesOfSignificantSumbols.containsKey(fieldId))
             return -1;
-        return lengths.get(fieldId);
+        return quantitiesOfSignificantSumbols.get(fieldId);
     }
 
     /**
@@ -208,61 +209,26 @@ public class ISOMessage {
         }
     }
 
-    private void parseBody() {
+    private void parseBody() throws ISOException {
         FixedBitSet pb = new FixedBitSet(64);
         pb.fromHexString(StringUtil.fromByteArray(primaryBitmap));
         int offset = 10;
-
         for (int fieldId : pb.getIndexes()) {
-
             FIELDS field = FIELDS.valueOf(fieldId);
-            // If a field with this number is not expected.
-            if (field == null)
-                continue;
-
-            if (field.isFixed()) {
-                if (!field.getHasSubfields() && !field.getHasElements())
-                    len = getCompressedOrUncompressedLengthOfFieldWithoutSubfieldsOrElements(field, -1);
-                else {
-                    if (field.getHasSubfields())
-                        len = getLengthOfFieldWithSubfields(field);
-                        // A fixed field can not have elements according to the MIP.
-                    else
-                        throw new IllegalArgumentException("The fixed field №" + fieldId + " must not have elements!");
-                }
-                // The field is unfixed.
-            } else {
-
-                int formatLength = 1;
-                switch (field.getFormat()) {
-                    case "LL":
-                        formatLength = 1;
-                        break;
-                    case "LLL":
-                        formatLength = 2;
-                        break;
-                }
-
-                int flen = Integer.valueOf(
+            // If the field is not provided by the Lib, an exception is thrown.
+            checkIdOfField(field);
+            if (field.isFixed())
+                len = getLengthOfFixedField(field);
+            else {
+                int formatLength = getFormatLength(field);
+                int fieldLengthMIP = Integer.valueOf(
                         StringUtil.fromByteArray(Arrays.copyOfRange(body, offset, offset + formatLength)));
-
-                if (!field.getHasSubfields() && !field.getHasElements())
-                    len = getCompressedOrUncompressedLengthOfFieldWithoutSubfieldsOrElements(field, flen);
-                else {
-                    if (field.getHasSubfields())
-                        throw new IllegalArgumentException("The unfixed field №" + fieldId +
-                                " with subfields is not provided by the Lib on the strength of the project!");
-                        // field.getHasElements().
-                    else
-                        len = getLengthOfFieldWithElements(field, flen, offset);
-                }
-                addLength(field, flen);
+                len = getLengthOfUnfixedField(field, fieldLengthMIP, offset);
+                addLength(field, fieldLengthMIP);
                 offset = offset + formatLength;
             }
             // Check that the length of the body is enough.
-            try {
-                addElement(field, Arrays.copyOfRange(body, offset, offset + len));
-            }
+            try { addElement(field, Arrays.copyOfRange(body, offset, offset + len)); }
             catch (ArrayIndexOutOfBoundsException ex) {
                 throw new ArrayIndexOutOfBoundsException("The length of the message is not enough!");
             }
@@ -270,21 +236,54 @@ public class ISOMessage {
         }
     }
 
-    /*private static int getLengthOfFixedFieldWithoutSubfieldsAndElements(FIELDS field) {
-        int len = field.getMaxLength();
-        switch (field.getType()) {
-            case "n":
-            case "b": {
-                if (len % 2 != 0)
-                    len++;
-                len = len / 2;
-                break;
-            }
-            default:
-                break;
+    private void checkIdOfField(FIELDS field) {
+        if (field == null)
+            throw new IllegalArgumentException("The information about the field №" + field.getNum() +
+                    " is not provided by the Lib on the strength of the project features" +
+                    " or because the MIP does not suggest this!");
+    }
+
+    private int getLengthOfUnfixedField(FIELDS field, int flen, int offset) throws ISOException {
+        int len;
+        if (!field.getHasSubfields() && !field.getHasElements())
+            len = getCompressedOrUncompressedLengthOfFieldWithoutSubfieldsOrElements(field, flen);
+        else {
+            if (field.getHasSubfields())
+                throw new ISOException("The unfixed field №" + field.getNum() +
+                        " with subfields is not provided by the Lib on the strength of the project!");
+                // field.getHasElements().
+            else
+                len = getLengthOfFieldWithElements(field, flen, offset);
         }
         return len;
-    }*/
+    }
+
+    private int getFormatLength(FIELDS field) {
+        int formatLength = 1;
+        switch (field.getFormat()) {
+            case "LL":
+                formatLength = 1;
+                break;
+            case "LLL":
+                formatLength = 2;
+                break;
+        }
+        return formatLength;
+    }
+
+    private int getLengthOfFixedField(FIELDS field) throws ISOException {
+        int len;
+        if (!field.getHasSubfields() && !field.getHasElements())
+            len = getCompressedOrUncompressedLengthOfFieldWithoutSubfieldsOrElements(field, -1);
+        else {
+            if (field.getHasSubfields())
+                len = getLengthOfFieldWithSubfields(field);
+            // A fixed field can not have elements according to the MIP.
+            else
+                throw new ISOException("The fixed field №" + field.getNum() + " must not have elements!");
+        }
+        return len;
+    }
 
     /*
     Only for fixed subfields!
@@ -316,56 +315,83 @@ public class ISOMessage {
         int len = 0;
         for (int subfieldId = 1; subfieldId <= field.getMaxSubfieldsId(); subfieldId++) {
             SUBFIELDS subfield = SUBFIELDS.valueOf(field.getNum(), subfieldId);
-            if (subfield != null) {
-                int subfieldLength = subfield.getLength();
-                if (subfield.getType().compareTo("n") == 0 ||
-                        subfield.getType().compareTo("b") == 0) {
-                    if (subfield.getLength() % 2 != 0)
-                        subfieldLength++;
-                    subfieldLength /= 2;
-                }
-                len += subfieldLength;
-            }
+            if (subfield == null)
+                throw new IllegalArgumentException("The information of the subfield №" + subfieldId +
+                        " of the field №" + field.getNum() + " is not provided by the Lib" +
+                        " on the strength of the project features or because the MIP does not suggest this!");
+            int subfieldLength = subfield.getLength();
+            if (subfield.getType().compareTo("n") == 0 || subfield.getType().compareTo("b") == 0)
+                subfieldLength = (subfieldLength + 1) / 2;
+            len += subfieldLength;
         }
         return len;
     }
 
-    private int getLengthOfFieldWithElements(FIELDS field, int flen, int offset) {
-        // To stop after the last element.
+    private int getLengthOfFieldWithElements(FIELDS field, int flen, int offset) throws ISOException {
+        int fieldId = field.getNum();
         int fieldLengthCurrent = 0;
         int fieldRealLengthInSymbols = 0;
+        // Stop after the last element.
         while (fieldLengthCurrent < flen) {
             if (offset + 5 > body.length)
                 throw new ArrayIndexOutOfBoundsException("The field №" + field.getNum() + "has not enough length!");
-            // The type of the element.
-            String elemTypeHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset, offset + 1));
-            String elemType = StringUtil.hexToAscii(elemTypeHex);
-            // The length of the element.
-            String elemLenHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset + 3, offset + 5));
-            int elemLenMIP = Integer.parseInt(StringUtil.hexToAscii(elemLenHex), 16);
+            int elemId = getIdOfElement(fieldId, offset);
+            String elemType = getTypeOfElement(offset);
+            int elemLenMIP = getLengthOfElement(offset);
             fieldLengthCurrent += elemLenMIP;
-
-            int elemLengthReal = elemLenMIP;
-            // Compressed format.
-            if (elemType.compareTo("%") == 0) {
-                if (elemLenMIP % 2 != 0)
-                    elemLengthReal++;
-                elemLengthReal /= 2;
-            }
-            // Uncompressed format.
-            else
-                elemLengthReal *= 2;
-            fieldRealLengthInSymbols += elemLengthReal;
+            int elemLengthInSymbols = getLengthInSymbolsOfElement(fieldId, elemId, elemType, elemLenMIP);
+            fieldRealLengthInSymbols += elemLengthInSymbols;
         }
         return fieldRealLengthInSymbols;
     }
 
+    /*
+    Returns the id of the field with the transmitted id.
+    The element matching to the offset is considered.
+     */
+    private int getIdOfElement(int fieldId, int offset) throws ISOException {
+        String elemIdHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset + 1, offset + 2));
+        int elemId = Integer.parseInt(StringUtil.hexToAscii(elemIdHex), 16);
+        if (ELEMENTS.valueOf(fieldId, elemId) == null)
+            throw new ISOException("The information of the №" + elemId +
+                    " of the field №" + fieldId + " is not provided by the Lib" +
+                    " on the strength of the project features or because the MIP does not suggest this!");
+        return elemId;
+    }
+
+    private String getTypeOfElement(int offset) {
+        String elemTypeHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset, offset + 1));
+        String elemType = StringUtil.hexToAscii(elemTypeHex);
+        return elemType;
+    }
+
+    private int getLengthOfElement(int offset) {
+        String elemLenHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset + 3, offset + 5));
+        int elemLenMIP = Integer.parseInt(StringUtil.hexToAscii(elemLenHex), 16);
+        return elemLenMIP;
+    }
+
+    private int getLengthInSymbolsOfElement(int fieldId, int elemId, String elemType, int elemLenMIP) {
+        int elemLengthInSymbols = elemLenMIP;
+        // Compressed format.
+        if (elemType.compareTo("%") == 0)
+            elemLengthInSymbols = (elemLengthInSymbols + 1) / 2; // To consider an odd length.
+            // Uncompressed format.
+        else
+        if (elemType.compareTo("^") == 0)
+            elemLengthInSymbols *= 2;
+        else
+            throw new IllegalArgumentException("The type of the element №" + elemId +
+                    " of the field №" + fieldId + " is incorrect!");
+        return elemLengthInSymbols;
+    }
+
     private void addElement(FIELDS field, byte[] data) {
-        dataElements.put(field.getNum(), data);
+        fields.put(field.getNum(), data);
     }
 
     private void addLength(FIELDS field, int length) {
-        lengths.put(field.getNum(), length);
+        quantitiesOfSignificantSumbols.put(field.getNum(), length);
     }
 
     /**
@@ -374,7 +400,7 @@ public class ISOMessage {
      * @return returns data elements entry set
      */
     public Set<Map.Entry<Integer, byte[]>> getEntrySet() {
-        return dataElements.entrySet();
+        return fields.entrySet();
     }
 
     /**
@@ -394,7 +420,7 @@ public class ISOMessage {
      * @return Returns true if field has value in message
      */
     public boolean fieldExits(int no) {
-        return dataElements.containsKey(no);
+        return fields.containsKey(no);
     }
 
     /**
@@ -470,7 +496,7 @@ public class ISOMessage {
 
         stringBuilder.append("\r\n");
         for (Map.Entry<Integer, byte[]> item :
-                dataElements.entrySet()) {
+                fields.entrySet()) {
             stringBuilder
                     .append(FIELDS.valueOf(item.getKey()).name())
                     .append(" : ")

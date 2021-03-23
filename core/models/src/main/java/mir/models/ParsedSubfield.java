@@ -14,9 +14,12 @@ public class ParsedSubfield {
     private String type;
     // According to the MIP.
     private int lengthMIP;
+    // Todo: remove the field.
     // Which the field has in the message.
     // Is different from the lengthMIP if the type of the field is "n" or "b".
-    private int lengthReal;
+    // The length of the content converted from hex without the additional zero.
+    private int lengthInSymbolsReal;
+
     private String content;
 
     // Getters and Setters.
@@ -45,13 +48,16 @@ public class ParsedSubfield {
         this.lengthMIP = lengthMIP;
     }
 
-    public int getLengthReal() {
-        return lengthReal;
+    // Todo: remove links below.
+    /*public int getLengthInSymbolsReal() {
+        return lengthInSymbolsReal;
     }
+    // Todo: the end.
 
-    public void setLengthReal(int lengthReal) {
-        this.lengthReal = lengthReal;
-    }
+    public void setLengthInSymbolsReal(int lengthInSymbolsReal) {
+        this.lengthInSymbolsReal = lengthInSymbolsReal;
+    }*/
+    // Todo: the end.
 
     public String getContent() {
         return content;

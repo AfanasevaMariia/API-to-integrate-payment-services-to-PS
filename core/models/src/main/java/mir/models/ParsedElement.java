@@ -11,24 +11,25 @@ import lombok.NoArgsConstructor;
 public class ParsedElement {
 
     @JsonIgnore
-    // ^ (0x5E) – means that symbols in the field (not object Field!) of the data
-    // of an element are represented by ASCII.
+    // ^ (5E in hex) – means that the data of the content represent ASCII symbols.
     public final static String separatorSym = "^";
     @JsonIgnore
-    // % (0x25) means that binary data in the field (not object Field!) of an element
-    // are represented by bytes 8 bits each.
+    // % (25 in hex) - means that the data of the content represent binary data.
     public final static String separatorBin = "%";
 
     // Binary data ("%") or ASCII symbols ("^").
     private String type;
-    // From 01 to ZZ in the hex system.
+    // From 01 to ZZ as hex symbols.
     private int id;
     // The length of the direct content without the type, the id, the length.
     // According to the MIP.
     private int lengthMIP;
+    // Todo: remove the lengthInSymbolsReal.
+    // The length of the direct content without the type, the id, the length.
     // Is different from the lengthMIP if the type of the field is "%".
-    private int lengthReal;
-    // Content.
+    // The length of the content converted from hex without the additional zero.
+    private int lengthInSymbolsReal;
+
     private String content;
 
     // Getters and Setters.
@@ -39,7 +40,7 @@ public class ParsedElement {
     public void setType(String dataFormat) {
         if (dataFormat.compareTo(separatorSym) == 0)
             type = separatorSym;
-            // dataFormat.compareTo(separatorBin) == 0.
+        // dataFormat.compareTo(separatorBin) == 0.
         else
             type = separatorBin;
     }
@@ -58,13 +59,15 @@ public class ParsedElement {
         return lengthMIP;
     }
 
-    public int getLengthReal() {
-        return lengthReal;
+    // Todo: remove links below.
+    /*public int getLengthInSymbolsReal() {
+        return lengthInSymbolsReal;
     }
 
-    public void setLengthReal(int lengthReal) {
-        this.lengthReal = lengthReal;
-    }
+    public void setLengthInSymbolsReal(int lengthInSymbolsReal) {
+        this.lengthInSymbolsReal = lengthInSymbolsReal;
+    }*/
+    // Todo: the end.
 
     public String getHexLengthMIP() { return StringUtil.intToHexString(lengthMIP); }
 

@@ -1,13 +1,10 @@
 package mir.parsing.routing;
 
 import mir.parsing.formatters.Encoder;
-import mir.models.EncodedMessage;
 import mir.models.ParsedMessage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 
 import java.io.IOException;
-import java.io.StringWriter;
 
 public class Router {
 
@@ -32,7 +29,7 @@ public class Router {
      */
     public static String getEncodedMessage(ParsedMessage parsedMessage) throws IOException, ISOException {
         Encoder encoder = new Encoder();
-        String hex = encoder.getHex(parsedMessage);
+        String hex = encoder.getHexFromParsedMessage(parsedMessage);
         return hex;
 
         // Formation of the encodedMessage.

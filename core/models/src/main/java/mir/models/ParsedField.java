@@ -19,9 +19,12 @@ public class ParsedField {
     private String type;
     // According to the MIP.
     private int lengthMIP;
+    // Todo: remove the lengthInSymbolsReal.
     // Which the field has in the message.
     // Is different from the lengthMIP if the type of the field is "n" or "b".
-    private int lengthReal;
+    // The length of the content converted from hex without the additional zero.
+    private int lengthInSymbolsReal;
+
     private String content;
     private boolean hasSubfields = false;
     private boolean hasElements = false;
@@ -54,13 +57,15 @@ public class ParsedField {
         this.lengthMIP = lengthMIP;
     }
 
-    public int getLengthReal() {
-        return lengthReal;
+    // Todo: remove links below.
+    /*public int getLengthInSymbolsReal() {
+        return lengthInSymbolsReal;
     }
 
-    public void setLengthReal(int lengthReal) {
-        this.lengthReal = lengthReal;
-    }
+    public void setLengthInSymbolsReal(int lengthInSymbolsReal) {
+        this.lengthInSymbolsReal = lengthInSymbolsReal;
+    }*/
+    // Todo: the end.
 
     public String getContent() {
         return content;
@@ -101,16 +106,18 @@ public class ParsedField {
 
     @JsonIgnore
     public String getBodyOrElementsHexStr() throws ISOException {
+        // TODO: realize the building of the content from subfields.
+        // The parsedField contains content in its subfields.
+        //if (hasSubfields)
+
         // The parsedField contains content in its elements.
         if (hasElements)
             return getElementsHexStr();
-            // The parsedField contains content in the body directly.
-        else {
-            if (type == "n" || type == "b")
-                return content;
-            else
-                return StringUtil.asciiToHex(content);
-        }
+        // The parsedField contains content in the body directly.
+        if (type == "n" || type == "b")
+            return content;
+        else
+            return StringUtil.asciiToHex(content);
     }
 
     @JsonIgnore
