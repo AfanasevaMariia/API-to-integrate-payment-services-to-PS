@@ -126,7 +126,8 @@ public class Encoder {
         // parsedField.getHasElements()
         else {
             for (ParsedElement parsedElement : parsedField.getElements().values())
-                length += parsedElement.getLengthMIP();
+                // type + id + length + content.
+                length += 1 + 2 + 2 + parsedElement.getLengthMIP();
         }
         return length;
     }

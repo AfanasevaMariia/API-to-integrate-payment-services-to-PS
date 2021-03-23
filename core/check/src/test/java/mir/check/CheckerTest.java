@@ -46,25 +46,24 @@ class CheckerTest {
     @Test
     void testParsedMessageMtiCorrect() throws IOException, ISOException, NoSuchFieldException, IllegalAccessException {
         // 3, 48.
-        // String probaMessage = "0100200000000001000092000000092536313034696E666F";
-        // String probaMessage = "010000000001000100000023200022536313332";
+         String probaMessage = "0100200000000001000092000000092536313034696E"; //
 
         // Test of the table.
         // 22 (n, 3)
-        //String probaMessage = "010000000400000000008108"; // +
+        // String probaMessage = "010000000400000000008108"; // +
         // 32 (n, 1-11, LL) - Here the length of a number is twice less than its length according to the MIP (1 num = 1/2 byte).
-         String probaMessage = "01000000000100000000030123"; //
+        // String probaMessage = "01000000000100000000030123"; // +
         // 52 (b, 8)
-        // String probaMessage = "0100000000000000100088888888"; //
+        // String probaMessage = "0100000000000000100088888888"; // +
         // 39 (an, 2) - Here the length of a number is equal to its length according to the MIP (1 num = 1 byte).
-        // String probaMessage = "010000000000020000003339"; //
+        // String probaMessage = "010000000000020000003339"; // +
         // 41 (ans, 8)
-        // String probaMessage = "01000000000000800000303132333435363738"; //
+        // String probaMessage = "010000000000008000003031323334353637"; // +
         // 35 (ans, 1-37, LL)
-        // String probaMessage = "01000000000020000000023337"; //
+        // String probaMessage = "01000000000020000000023337"; // +
         // 48 (ans, 6-999, LLL)
         // The 97th subfield of the 48th field.
-        // String probaMessage = "010000000000000100000009253631999999999"; // len of the 48th field = 0009. //
+        // String probaMessage = "01000000000000010000000925363130390999999999"; // len of the 48th field = 0009. // +
         ISOMessage isoMessageProba = null;
         try {
             isoMessageProba = ISOMessageBuilder.Unpacker()
@@ -80,7 +79,7 @@ class CheckerTest {
             return;
         }
         System.out.println(isoMessageProba.toString());
-        int fieldId = 32;
+        int fieldId = 48;
         String fieldStr = null;
         if (FIELDS.valueOf(fieldId).getType().compareTo("n") == 0 ||
                 FIELDS.valueOf(fieldId).getType().compareTo("b") == 0) {
@@ -389,7 +388,8 @@ class CheckerTest {
             System.out.println("\t\t\t\t\tid = " + parsedElement.getId());
             System.out.println("\t\t\t\t\ttype = " + parsedElement.getType());
             System.out.println("\t\t\t\t\tlengthMIP = " + parsedElement.getLengthMIP());
-            System.out.println("\t\t\t\t\tlengthReal = " + parsedElement.getLengthMIP());
+            // Todo: remove println.
+            //System.out.println("\t\t\t\t\tlengthReal = " + parsedElement.getLengthReal());
             System.out.println("\t\t\t\t\tcontent = " + parsedElement.getContent());
         }
     }

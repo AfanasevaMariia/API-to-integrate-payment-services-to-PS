@@ -77,10 +77,28 @@ public class Checker {
         AnyOf anyOfAnnotation = annotatedType.getDeclaredAnnotation(AnyOf.class);
         // Getting of the field value.
         field.setAccessible(true);
-        Object fieldObject = field. get(object);
-        for (Object objectElem : anyOfAnnotation.values())
-            if (objectElem.equals(fieldObject))
-                return errors;
+        Object fieldObject = field.get(object);
+        // The fieldObject is String.
+        if (fieldObject instanceof String) {
+            String fieldObjectStr = (String)fieldObject;
+            for (Object objectElem : anyOfAnnotation.values())
+                if (((String)objectElem).compareTo(fieldObjectStr) == 0)
+                    return errors;
+        }
+        else
+            // The fieldObject is Integer.
+            if (fieldObject instanceof Integer) {
+                Integer fieldObjectInt = (Integer)fieldObject;
+                for (Object objectElem : anyOfAnnotation.values())
+                    if (Integer.parseInt((String)objectElem) == fieldObjectInt)
+                        return errors;
+            }
+            // The fieldObject is some Object.
+            else {
+                for (Object objectElem : anyOfAnnotation.values())
+                    if (objectElem.equals(fieldObject))
+                        return errors;
+            }
         String fieldName = field.getName();
         errors.add(new MessageError("The value of the " + fieldName +
                 " of the " + object.getClass().getSimpleName() +
@@ -145,12 +163,13 @@ public class Checker {
         // The quantity of symbols is enough for the representation of the primary bitmap.
         // Check of the correctness of the 16 symbols representing the primary bitmap.
         String primaryBitmap = hex.substring(4, 20);
-        // The first 0 means that there are only the primary bitmap (no the secondary bitmap).
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("0.{15}");
+        // The first field value equaling 0 means that there are only the primary bitmap (no the secondary bitmap).
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("[0-7].{15}");
         java.util.regex.Matcher matcher = pattern.matcher(primaryBitmap);
         if (!matcher.matches())
-            errors.add(new MessageError("The first symbol of the primary bitmap must be equal to 0!"));
-        pattern = java.util.regex.Pattern.compile("0[0-9A-F]{15}");
+            // The first number of the primary bitmap must not be more than 7.
+            errors.add(new MessageError("The first field value of the primary bitmap must be equal to 0!"));
+        pattern = java.util.regex.Pattern.compile("[0-7][0-9A-F]{15}");
         matcher = pattern.matcher(primaryBitmap);
         if (!matcher.matches())
             errors.add(new MessageError("The primary bitmap must be represented by only the hexadecimal numbers!"));
@@ -400,7 +419,8 @@ public class Checker {
             (HashMap<Integer, ParsedElement> knownElements) {
         int currentContentLength = 0;
         for (ParsedElement parsedElement : knownElements.values()) {
-            currentContentLength += getCurrentContentLengthMIPOfParsedElement(parsedElement);
+            // type + id + length + content.
+            currentContentLength += 1 + 2 + 2 + getCurrentContentLengthMIPOfParsedElement(parsedElement);
         }
         return currentContentLength;
     }

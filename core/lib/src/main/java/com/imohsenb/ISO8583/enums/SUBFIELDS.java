@@ -4,14 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum SUBFIELDS {
-    //                                      |fieldNum   |subFieldNum    |type   |lengthSignificantSymbols   |fixed   |format    |beginInd
+    //                                      |fieldNum   |subFieldNum    |type   |length       |fixed     |format    |beginInd
+    F1_OperationType                        ( 3,1, "n",  2, true, null,  0),
+    F2_SenderAccountType                    ( 3,2, "n",  2, true, null,  2),
+    F3_BeneficiaryAccountType               ( 3,3, "n",  2, true, null,  4),
+
     F1_POSTerminalPANEntryMode              (22,1, "n",  2, true, null,  0),
     F1_POSTerminalPINEntryCapability        (22,2, "n",  1, true, null,  2),
-    // Using.
+    // Required for the project.
     F1_NetworkIdentifier                    (63,1, "an",  4, true, null,  0),
     F2_TransactionReferenceNumber           (63,2, "n",  16, true, null,  4),
     F3_CardProductID                        (63,3, "ans", 3, true, null, 20);
-    // Using. The end.
+    // Required for the project. The end.
 
     private final int fieldNum;
     private final int subFieldNum;

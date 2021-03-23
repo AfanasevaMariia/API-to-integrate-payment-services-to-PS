@@ -79,7 +79,7 @@ public class ISOMessage {
      */
     public byte[] getField(int fieldNo) throws ISOException {
         if (!fields.containsKey(fieldNo))
-            throw new ISOException("Field No " + fieldNo + " does not exists");
+            throw new ISOException("Field №" + fieldNo + " does not exist!");
         return fields.get(fieldNo);
     }
 
@@ -223,9 +223,10 @@ public class ISOMessage {
                 int formatLength = getFormatLength(field);
                 int fieldLengthMIP = Integer.valueOf(
                         StringUtil.fromByteArray(Arrays.copyOfRange(body, offset, offset + formatLength)));
+                offset = offset + formatLength;
                 len = getLengthOfUnfixedField(field, fieldLengthMIP, offset);
                 addLength(field, fieldLengthMIP);
-                offset = offset + formatLength;
+                //offset = offset + formatLength;
             }
             // Check that the length of the body is enough.
             try { addElement(field, Arrays.copyOfRange(body, offset, offset + len)); }
@@ -330,7 +331,9 @@ public class ISOMessage {
     private int getLengthOfFieldWithElements(FIELDS field, int flen, int offset) throws ISOException {
         int fieldId = field.getNum();
         int fieldLengthCurrent = 0;
-        int fieldRealLengthInSymbols = 0;
+        //Todo: check that can be removed and remove. line
+        //int fieldRealLengthInSymbols = 0;
+        int fieldRealLengthBytes = 0;
         // Stop after the last element.
         while (fieldLengthCurrent < flen) {
             if (offset + 5 > body.length)
@@ -338,11 +341,16 @@ public class ISOMessage {
             int elemId = getIdOfElement(fieldId, offset);
             String elemType = getTypeOfElement(offset);
             int elemLenMIP = getLengthOfElement(offset);
-            fieldLengthCurrent += elemLenMIP;
-            int elemLengthInSymbols = getLengthInSymbolsOfElement(fieldId, elemId, elemType, elemLenMIP);
-            fieldRealLengthInSymbols += elemLengthInSymbols;
+            int elemLengthBytes = getLengthBytesOfElement(fieldId, elemId, elemType, elemLenMIP);
+            fieldRealLengthBytes += 1 + 2 + 2 + elemLengthBytes;
+            // Todo: check that can be removed and remove.
+            //int elemLengthInSymbols = getLengthInSymbolsOfElement(fieldId, elemId, elemType, elemLenMIP);
+            //fieldRealLengthInSymbols += elemLengthInSymbols;
+            // Todo: the end.
+            // type + id + length + content.
+            fieldLengthCurrent += 1 + 2 + 2 + elemLenMIP;
         }
-        return fieldRealLengthInSymbols;
+        return fieldRealLengthBytes;
     }
 
     /*
@@ -350,7 +358,7 @@ public class ISOMessage {
     The element matching to the offset is considered.
      */
     private int getIdOfElement(int fieldId, int offset) throws ISOException {
-        String elemIdHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset + 1, offset + 2));
+        String elemIdHex = StringUtil.fromByteArray(Arrays.copyOfRange(body, offset + 1, offset + 3));
         int elemId = Integer.parseInt(StringUtil.hexToAscii(elemIdHex), 16);
         if (ELEMENTS.valueOf(fieldId, elemId) == null)
             throw new ISOException("The information of the №" + elemId +
@@ -371,18 +379,38 @@ public class ISOMessage {
         return elemLenMIP;
     }
 
+    private int getLengthBytesOfElement(int fieldId, int elemId, String elemType, int elemLenMIP) {
+        int elemLengthInBytes = elemLenMIP;
+        // Compressed format.
+        if (elemType.compareTo("%") == 0) {
+            // +1 to consider an odd length.
+            elemLengthInBytes = (elemLengthInBytes + 1) / 2;
+        }
+        // Uncompressed format.
+        else {
+            if (elemType.compareTo("^") != 0)
+                throw new IllegalArgumentException("The type of the element №" + elemId +
+                        " of the field №" + fieldId + " is incorrect!");
+            // If elemType.compareTo("^") == 0, the elemLengthInBytes has had right value already.
+        }
+        return elemLengthInBytes;
+    }
+
     private int getLengthInSymbolsOfElement(int fieldId, int elemId, String elemType, int elemLenMIP) {
         int elemLengthInSymbols = elemLenMIP;
         // Compressed format.
-        if (elemType.compareTo("%") == 0)
-            elemLengthInSymbols = (elemLengthInSymbols + 1) / 2; // To consider an odd length.
-            // Uncompressed format.
-        else
-        if (elemType.compareTo("^") == 0)
-            elemLengthInSymbols *= 2;
-        else
-            throw new IllegalArgumentException("The type of the element №" + elemId +
-                    " of the field №" + fieldId + " is incorrect!");
+        if (elemType.compareTo("%") == 0) {
+            if (elemLengthInSymbols % 2 != 0)
+                elemLengthInSymbols++; // To consider an odd length.
+        }
+        // Uncompressed format.
+        else {
+            if (elemType.compareTo("^") == 0)
+                elemLengthInSymbols *= 2;
+            else
+                throw new IllegalArgumentException("The type of the element №" + elemId +
+                        " of the field №" + fieldId + " is incorrect!");
+        }
         return elemLengthInSymbols;
     }
 
