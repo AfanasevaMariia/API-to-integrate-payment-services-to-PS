@@ -63,9 +63,9 @@ class CheckerTest {
         // String probaMessage = "01000000000020000000023337"; // +
         // 48 (ans, 6-999, LLL)
         // The 97th subfield of the 48th field.
-        // String probaMessage = "01000000000000010000000925363130390999999999"; // len of the 48th field = 0009. // +
+         String probaMessage = "01000000000000010000000925363130390999999999"; // len of the 48th field = 0009. // +
         // The 63th field. The 2th subfield.
-        String probaMessage = "010000000000000000023030303023232323232323234D4D4D"; //
+        // String probaMessage = "010000000000000000023030303023232323232323234D4D4D"; // +
         ISOMessage isoMessageProba = null;
         try {
             isoMessageProba = ISOMessageBuilder.Unpacker()

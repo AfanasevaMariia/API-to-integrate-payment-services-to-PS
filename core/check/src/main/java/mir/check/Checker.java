@@ -42,8 +42,6 @@ public class Checker {
         errors = checkFieldsOnAnnotations(parsedMessage, errors);
         errors = checkTransactionDate(parsedMessage, errors);
         errors = checkParsedFields(parsedMessage, errors);
-        // TODO: remove the line below.
-        //errors = checkExceptFieldsOfPrimaryBitmap(parsedMessage, errors);
         return errors;
     }
 

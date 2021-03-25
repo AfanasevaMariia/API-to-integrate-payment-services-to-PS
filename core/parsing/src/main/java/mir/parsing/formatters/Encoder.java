@@ -97,7 +97,7 @@ public class Encoder {
         }
         // Setting of the transaction number must happen after the parsing of fields
         // because this value is taken from one of fields.
-        setTransactionNumber(parsedMessage);
+        parsedMessage.setTransactionNumber(getTransactionNumber(parsedMessage));
         return parsedMessage;
     }
 
@@ -149,8 +149,6 @@ public class Encoder {
         int length;
         // Getting of the length from FIELDS.
         if (field.isFixed()) {
-            // TODO: remove the link below.
-            //parsedField.setLengthMIP(field.getMaxLength());
             // In compressed format.
             if (field.getType().compareTo("n") == 0 ||
                 field.getType().compareTo("b") == 0)
@@ -162,8 +160,6 @@ public class Encoder {
         // field is unfixed.
         // Getting of the length from  the lengths of the isoMessage.
         else {
-            // TODO: remove the link below.
-            // parsedField.setLengthMIP(isoMessage.getFieldLength(parsedField.getId()));
             // In compressed format.
             if (field.getType().compareTo("n") == 0 ||
                 field.getType().compareTo("b") == 0)
@@ -188,16 +184,6 @@ public class Encoder {
         if (fields.getHasSubfields()) {
             parsedField.setHasSubfields(true);
             subfields = parseSubfields(parsedField);
-            // TODO: check that links below can be removed and remove them.
-            /*for (ParsedSubfield parsedSubfield : subfields.values()) {
-                int subfieldId = parsedSubfield.getId();
-                if (SUBFIELDS.valueOf(fieldId, subfieldId) == null)
-                    throw new IllegalArgumentException("The information of the subfield №" + subfieldId +
-                            " of the field №" + fieldId + " is not provided by the Lib" +
-                            " on the strength of the project features or because the MIP does not suggest this!");
-                parsedField.setSubfields(parseSubfields(parsedField));
-            }*/
-            // Todo: the end.
         }
         return subfields;
     }
@@ -210,36 +196,28 @@ public class Encoder {
         if (fields.getHasElements()) {
             parsedField.setHasElements(true);
             elements = parseElements(parsedField);
-            // Todo: check that links below cna be removed and remove them.
-            /*for (ParsedElement parsedElement : elements.values()) {
-                int elemId = parsedElement.getId();
-                if (SUBFIELDS.valueOf(fieldId, elemId) == null)
-                    throw new IllegalArgumentException("The information of the element №" + elemId +
-                            " of the field №" + fieldId + " is not provided by the Lib" +
-                            " on the strength of the project features or because the MIP does not suggest this!");
-                parsedField.setElements(parseElements(parsedField));
-            }*/
-            // Todo: the end.
         }
         return elements;
     }
 
+    // TOdO: I really don't want to remove this but there is not a real reason to use this functional,
+    //  only as pleasant feature. But then there is an additional work to insert this code into the current.
     /*
     Sets the sequence of the subfields contents as the content of the parsedField.
     */
-    private static void setSubfieldsAsParsedFieldContent(ParsedField parsedField) {
+    /*private static void setSubfieldsAsParsedFieldContent(ParsedField parsedField) {
         StringBuilder fieldContent = new StringBuilder();
         HashMap<Integer, ParsedSubfield> subfields = parsedField.getSubfields();
         for (ParsedSubfield subfield : subfields.values())
             fieldContent.append(subfield.getContent());
         parsedField.setContent(fieldContent.toString());
         return;
-    }
+    }*/
 
     /*
     Sets the sequence of the elements contents as the content of the parsedField.
     */
-    private static void setElementsAsParsedFieldContent(ParsedField parsedField) {
+    /*private static void setElementsAsParsedFieldContent(ParsedField parsedField) {
         StringBuilder fieldContent = new StringBuilder();
         HashMap<Integer, ParsedElement> elements = parsedField.getElements();
         for (ParsedElement elem : elements.values()) {
@@ -250,7 +228,8 @@ public class Encoder {
         }
         parsedField.setContent(fieldContent.toString());
         return;
-    }
+    }*/
+    // Todo: the end.
 
     /*
     Returns the HashMap of the elements of the field if it has these.
@@ -274,8 +253,6 @@ public class Encoder {
             parsedElement.setLengthMIP(Integer.parseInt(StringUtil.hexToAscii(lengthHex), 16));
             // The real length.
             int contentLengthInSymbols = getLengthInSymbolsOfElem(parsedElement);
-            // Todo: remove the link below.
-            //parsedElement.setLengthInSymbolsReal(contentLengthInSymbols);
             // Setting of the content.
             parsedElement.setContent(getElemContent(parsedField, parsedElement, indSym, contentLengthInSymbols));
             // The offset of the indSym to make it the first index of the next parsedElement.
@@ -358,8 +335,6 @@ public class Encoder {
         parsedSubfield.setLengthMIP(length);
         // The real length (the quantity of symbols) of the parsedSubfield.
         length = getParsedSubfieldRealLength(parsedField, parsedSubfield, length);
-        // Todo: remove the link below.
-        // parsedSubfield.setLengthInSymbolsReal(length);
         parsedSubfield.setContent(getSubfieldContent(parsedField, subfieldSample, length));
         return parsedSubfield;
     }
@@ -390,8 +365,6 @@ public class Encoder {
             // The first additional zero is considered.
             if (length % 2 != 0)
                 length++;
-            // TODO: define with /= 2 or without /= 2.
-            //length /= 2;
         }
         // Uncompressed format.
         else
@@ -402,29 +375,28 @@ public class Encoder {
     // TODO: change the returned type from void to int
     //  which will be used to return the transaction number.
     /*
-    Sets the transaction number of the parsedMessage if it has the 2th element
+    Returns the transaction number of the parsedMessage if it has the 2th element
     of the 63th field (Transaction Reference Number (TRN)).
      */
-    private static void setTransactionNumber(ParsedMessage parsedMessage) {
+    private static String getTransactionNumber(ParsedMessage parsedMessage) {
         int fieldId = 63;
-        int elemId = 2;
-        int elemContentLength = 16;
+        int subfieldId = 2;
+        String transactionNumber;
         // If the required field is set.
         if (parsedMessage.getFields().containsKey(fieldId)) {
             ParsedField parsedField = parsedMessage.getFields().get(fieldId);
-            // If the subfield/element is set.
-            if (parsedField.getElements().containsKey(elemId)) {
-                ParsedElement parsedElement = parsedField.getElements().get(elemId);
-                String transactionNumber = parsedElement.getContent();
-                parsedMessage.setTransactionNumber(transactionNumber);
+            // If the subfield is set.
+            if (parsedField.getSubfields().containsKey(subfieldId)) {
+                ParsedSubfield parsedSubfield = parsedField.getSubfields().get(subfieldId);
+                transactionNumber = parsedSubfield.getContent();
             }
             else
-                parsedMessage.setTransactionNumber(null);
+                transactionNumber = null;
         }
         else
             // Setting of the mark that the transactionNumber is not set.
-            parsedMessage.setTransactionNumber(null);
-        return;
+            transactionNumber = null;
+        return transactionNumber;
     }
 
     /*
