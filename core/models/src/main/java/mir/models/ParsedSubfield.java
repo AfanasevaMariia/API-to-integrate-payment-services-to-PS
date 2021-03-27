@@ -6,8 +6,6 @@ import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
-
 @JsonAutoDetect
 @NoArgsConstructor
 public class ParsedSubfield {
@@ -16,11 +14,6 @@ public class ParsedSubfield {
     private String type;
     // According to the MIP.
     private int lengthMIP;
-    // Todo: remove the field.
-    // Which the field has in the message.
-    // Is different from the lengthMIP if the type of the field is "n" or "b".
-    // The length of the content converted from hex without the additional zero.
-    private int lengthInSymbolsReal;
 
     private String content;
 
@@ -49,17 +42,6 @@ public class ParsedSubfield {
     public void setLengthMIP(int lengthMIP) {
         this.lengthMIP = lengthMIP;
     }
-
-    // Todo: remove links below.
-    /*public int getLengthInSymbolsReal() {
-        return lengthInSymbolsReal;
-    }
-    // Todo: the end.
-
-    public void setLengthInSymbolsReal(int lengthInSymbolsReal) {
-        this.lengthInSymbolsReal = lengthInSymbolsReal;
-    }*/
-    // Todo: the end.
 
     public String getContent() {
         return content;

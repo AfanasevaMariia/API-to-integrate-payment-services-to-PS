@@ -19,7 +19,7 @@ public class Encoder {
     /*
     Converts the hex into the ParsedMessage.
      */
-    public ParsedMessage getParsedMessageFromHex(String hex) throws ISOException {
+    public ParsedMessage getParsedMessageFromEncodedMessage(String hex) throws ISOException {
         // Transformation of the hex to the isoMessage.
         ISOMessage isoMessage = ISOMessageBuilder.Unpacker()
                     .setMessage(hex)
@@ -34,7 +34,7 @@ public class Encoder {
     the values of the transmitted parsedMessage.
     Accepts a parsedMessage.
     */
-    public String getHexFromParsedMessage(ParsedMessage parsedMessage) throws ISOException {
+    public String getEncodedMessageFromParsedMessage(ParsedMessage parsedMessage) throws ISOException {
         if (!parsedMessage.getEdited())
             return parsedMessage.getHex();
         StringBuilder message = new StringBuilder();

@@ -13,7 +13,7 @@ public class Router {
 	 */
     public static ParsedMessage getParsedMessage(String hex) throws ISOException {
         Encoder encoder = new Encoder();
-        ParsedMessage parsedMessage = encoder.getParsedMessageFromHex(hex);
+        ParsedMessage parsedMessage = encoder.getParsedMessageFromEncodedMessage(hex);
         return parsedMessage;
     }
 
@@ -22,7 +22,7 @@ public class Router {
     */
     public static String getEncodedMessage(ParsedMessage parsedMessage) throws IOException, ISOException {
         Encoder encoder = new Encoder();
-        String hex = encoder.getHexFromParsedMessage(parsedMessage);
+        String hex = encoder.getEncodedMessageFromParsedMessage(parsedMessage);
         return hex;
     }
 }
