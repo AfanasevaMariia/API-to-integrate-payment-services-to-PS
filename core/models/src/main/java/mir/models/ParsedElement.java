@@ -6,6 +6,9 @@ import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
+import java.util.Set;
+
 @JsonAutoDetect
 @NoArgsConstructor
 public class ParsedElement {
@@ -59,6 +62,12 @@ public class ParsedElement {
         return lengthMIP;
     }
 
+    public String getHexLengthMIP() { return StringUtil.intToHexString(lengthMIP); }
+
+    public void setLengthMIP(int lengthMIP) {
+        this.lengthMIP = lengthMIP;
+    }
+
     // Todo: remove links below.
     /*public int getLengthInSymbolsReal() {
         return lengthInSymbolsReal;
@@ -68,12 +77,6 @@ public class ParsedElement {
         this.lengthInSymbolsReal = lengthInSymbolsReal;
     }*/
     // Todo: the end.
-
-    public String getHexLengthMIP() { return StringUtil.intToHexString(lengthMIP); }
-
-    public void setLengthMIP(int lengthMIP) {
-        this.lengthMIP = lengthMIP;
-    }
 
     public String getContent() {
         return content;
@@ -140,5 +143,18 @@ public class ParsedElement {
         // The body.
         elementStr.append(content);
         return elementStr.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("\t\t\t\tElement:\n");
+        str.append("\t\t\t\t\tid = " + id + "\n");
+        str.append("\t\t\t\t\ttype = " + type + "\n");
+        str.append("\t\t\t\t\tlengthMIP = " + lengthMIP + "\n");
+        // Todo: remove the addition of the lengthInSymbolsReal.
+        // str.append("\t\t\t\t\tlengthReal = " + lengthInSymbolsReal + "\n");
+        str.append("\t\t\t\t\tcontent = " + content + "\n");
+        return str.toString();
     }
 }

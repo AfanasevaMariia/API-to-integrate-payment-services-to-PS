@@ -6,6 +6,8 @@ import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
+
 @JsonAutoDetect
 @NoArgsConstructor
 public class ParsedSubfield {
@@ -73,5 +75,18 @@ public class ParsedSubfield {
     public String getHexContent() throws ISOException {
         String elementStr = StringUtil.asciiToHex(content);
         return elementStr;
+    }
+
+    @Override
+    public String toString ()  {
+        StringBuilder str  = new StringBuilder();
+        str.append("\t\t\t\tSubfield:\n");
+        str.append("\t\t\t\t\tid = " + id + "\n");
+        str.append("\t\t\t\t\ttype = " + type + "\n");
+        str.append("\t\t\t\t\tlengthMIP = " + lengthMIP + "\n");
+        // Todo: remove the addition of the lengthInSymbolsReal.
+        // str.append("\t\t\t\t\tlengthReal = " + lengthInSymbolsReal + "\n");
+        str.append("\t\t\t\t\tcontent = " + content + "\n");
+        return str.toString();
     }
 }

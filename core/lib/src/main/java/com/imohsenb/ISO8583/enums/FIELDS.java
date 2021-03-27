@@ -22,7 +22,6 @@ public enum FIELDS {
     // The 8th field is missed in MIP.
     F9_ConversionRate_Settlement        (9,  "n",   8, 8,    true,  null, true, 2, false),
     F10_ConversionRate_Cardholder       (10, "n",   8, 8,    true,  null, true, 2, false),
-    // TODO: using. But must be replaced on the 63th field.
     F11_STAN                            (11, "n",   6, 6,    true,  null, false, 0, false),
     // using
     F12_LocalTime                       (12, "n",   6, 6,    true,  null, false, 0, false),
@@ -77,6 +76,7 @@ public enum FIELDS {
     // The minLength must be refined before using this field!!!
     // Unfixed variant from the MIP: F63_Reserved_Private                (63, "ans", 1, 999,  false, "LLL", true, 3, false),
     // Fixed variant for the project:
+    // Todo: add to the documentation that there this is fixed field.
     F63_Reserved_Private                (63, "ans", 23, 23,  true, null, true, 3, false),
     // The 64th field is missed in MIP but is necessary for BaseMessageClassBuilder Class of the ISO Lib.
     F64_MAC                             (64, "b",   16, 16,   true,  null, false, 0, false);

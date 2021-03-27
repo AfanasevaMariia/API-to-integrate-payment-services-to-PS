@@ -6,8 +6,11 @@ import com.imohsenb.ISO8583.enums.FIELDS;
 import com.imohsenb.ISO8583.enums.SUBFIELDS;
 import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.imohsenb.ISO8583.utils.StringUtil;
+import io.swagger.models.auth.In;
 import mir.models.*;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.TreeMap;
 
@@ -32,33 +35,122 @@ public class Encoder {
     Accepts a parsedMessage.
     */
     public String getHexFromParsedMessage(ParsedMessage parsedMessage) throws ISOException {
+        if (!parsedMessage.getEdited())
+            return parsedMessage.getHex();
         StringBuilder message = new StringBuilder();
         message.append(parsedMessage.getMti());
         // Formation of the primaryBitmap and extracting of the hex bodies of fields into the content.
         byte[] primaryBitmap = new byte[64];
         StringBuilder content = new StringBuilder();
         HashMap<Integer, ParsedField> parsedFields = parsedMessage.getFields();
-        for (Integer id : parsedFields.keySet()) {
+        Integer[] ids = Arrays.copyOf(parsedFields.keySet().toArray(), parsedFields.keySet().size(), Integer[].class);
+        Arrays.sort(ids);
+        for (int id : ids) {
             ParsedField parsedField = parsedFields.get(id);
             // Marking of the bit.
             primaryBitmap[id - 1] = 1;
             // Addition of the length prefix.
-            FIELDS fieldImage = FIELDS.valueOf(parsedField.getId());
-            if (!fieldImage.isFixed()) {
-                content.append(parsedField.getFieldLengthStr());
-            }
+            FIELDS field = FIELDS.valueOf(parsedField.getId());
+            if (!field.isFixed())
+                content.append(getLengthMIPOfParsedFieldForHex(parsedField));
             // Addition of the body or elements.
-            content.append(parsedField.getBodyOrElementsHexStr());
+            content.append(getHexContentOfParsedField(parsedField));
         }
         String primaryBitmapHexStr = convertBinPrimaryBitmapToHexStr(primaryBitmap);
         // The transformation of the bits array into the byte array and then into the hex String.
         message.append(primaryBitmapHexStr);
         message.append(content);
-
         return message.toString();
     }
 
-    private static String convertBinPrimaryBitmapToHexStr(byte[] primaryBitmapBin) {
+    /*
+    Returns the lengthMIP of parsedField in the format necessary for the hex.
+    */
+    static String getLengthMIPOfParsedFieldForHex (ParsedField parsedField) {
+        StringBuilder lengthMIPForHex = new StringBuilder();
+        String lengthMIPStr = String.valueOf(parsedField.getLengthMIP());
+        String lengthFormat = FIELDS.valueOf(parsedField.getId()).getFormat();
+        if (lengthFormat.compareTo("LL") == 0)
+            while (lengthMIPStr.length() + lengthMIPForHex.length() < 2)
+                lengthMIPForHex.append("0");
+        // lengthFormat.compareTo("LLL") == 0
+        else
+            while (lengthMIPStr.length() + lengthMIPForHex.length() < 4)
+                lengthMIPForHex.append("0");
+        lengthMIPForHex.append(lengthMIPStr);
+        return lengthMIPForHex.toString();
+    }
+
+    /*
+    Returns the content of the parsedField in the hex format.
+    // Todo: add this feature to the documentation.
+    Note, unfixed fields with subfields are not considered!
+    */
+    static String getHexContentOfParsedField(ParsedField parsedField) {
+        if (parsedField.getHasSubfields())
+            return getHexContentOfParsedSubfields(parsedField);
+        if (parsedField.getHasElements())
+            return getHexContentOfParsedElements(parsedField);
+        // The parsedField has not some subfields and elements.
+        // Compressed format.
+        if (parsedField.getType().compareTo("n") == 0 || parsedField.getType().compareTo("b") == 0)
+            return parsedField.getContent();
+        // Uncompressed format.
+        else
+            return StringUtil.asciiToHex(parsedField.getContent());
+    }
+
+    /*
+    Returns the content of the parsed subfields of the parsedField in the hex format.
+    // Todo: add this feature to the documentation.
+    Note, unfixed fields with subfields are not considered!
+    */
+    static String getHexContentOfParsedSubfields(ParsedField parsedField) {
+        StringBuilder contentHex = new StringBuilder();
+        HashMap<Integer, ParsedSubfield> subfields = parsedField.getSubfields();
+        Integer[] subfieldsIds = Arrays.copyOf(subfields.keySet().toArray(), subfields.keySet().size(), Integer[].class);
+        Arrays.sort(subfieldsIds);
+        for (int subfieldId : subfieldsIds) {
+            ParsedSubfield parsedSubfield = subfields.get(subfieldId);
+            // Add the content.
+            // Compressed format.
+            if (parsedSubfield.getType().compareTo("n") == 0 || parsedSubfield.getType().compareTo("b") == 0)
+                contentHex.append(parsedSubfield.getContent());
+                // Uncompressed format.
+            else
+                contentHex.append(StringUtil.asciiToHex(parsedSubfield.getContent()));
+        }
+        return contentHex.toString();
+    }
+
+    /*
+    Returns the content of the parsed elements of the parsedField in the hex format.
+    */
+    static String getHexContentOfParsedElements(ParsedField parsedField) {
+        StringBuilder contentHex = new StringBuilder();
+        HashMap<Integer, ParsedElement> elements = parsedField.getElements();
+        Integer[] elementsIds = Arrays.copyOf(elements.keySet().toArray(), elements.keySet().size(), Integer[].class);
+        Arrays.sort(elementsIds);
+        for (int elemId : elementsIds) {
+            ParsedElement parsedElement = elements.get(elemId);
+            // Add the type.
+            contentHex.append(StringUtil.asciiToHex(parsedElement.getType()));
+            // Add the id.
+            contentHex.append(StringUtil.asciiToHex(String.valueOf(parsedElement.getHexId())));
+            // Add the length.
+            contentHex.append(StringUtil.asciiToHex(String.valueOf(parsedElement.getHexLengthMIP())));
+            // Add the content.
+            // Compressed format.
+            if (parsedElement.getType().compareTo("%") == 0)
+                contentHex.append(parsedElement.getContent());
+                // Uncompressed format.
+            else
+                contentHex.append(StringUtil.asciiToHex(parsedElement.getContent()));
+        }
+        return contentHex.toString();
+    }
+
+    static String convertBinPrimaryBitmapToHexStr(byte[] primaryBitmapBin) {
         StringBuilder primaryBitmapHex = new StringBuilder();
         for (int i = 0; i < 16; i++) {
             StringBuilder bin = new StringBuilder();
@@ -73,8 +165,8 @@ public class Encoder {
 
     /*
     Converts an ISOMessage into a ParsedMessage.
-     */
-    private ParsedMessage getParsedMessageFromISO(ISOMessage isoMessage) throws ISOException {
+    */
+    static ParsedMessage getParsedMessageFromISO(ISOMessage isoMessage) throws ISOException {
         ParsedMessage parsedMessage = new ParsedMessage();
         parsedMessage.setMti(isoMessage.getMti());
         parsedMessage.setHex(StringUtil.fromByteArray(isoMessage.getBody()));
@@ -101,7 +193,8 @@ public class Encoder {
         return parsedMessage;
     }
 
-    private static int getLengthMIPOfParsedField(ISOMessage isoMessage, ParsedField parsedField) {
+
+    static int getLengthMIPOfParsedField(ISOMessage isoMessage, ParsedField parsedField) {
         if (!parsedField.getHasSubfields() && !parsedField.getHasElements()) {
             int fieldId = parsedField.getId();
             FIELDS field = FIELDS.valueOf(fieldId);
@@ -124,7 +217,8 @@ public class Encoder {
         return length;
     }
 
-    private static int getLengthRealBytesForParsedField(ISOMessage isoMessage, ParsedField parsedField, FIELDS field) {
+    // Todo: check that this method can be removed and remove it.
+    /*private static int getLengthRealBytesForParsedField(ISOMessage isoMessage, ParsedField parsedField, FIELDS field) {
         int length;
         if (!parsedField.getHasSubfields() && !parsedField.getHasElements())
             length = getLengthRealBytesForParsedFieldWithoutSubfieldsOrElements(isoMessage, parsedField, field);
@@ -142,9 +236,10 @@ public class Encoder {
             }
         }
         return length;
-    }
+    }*/
 
-    private static int getLengthRealBytesForParsedFieldWithoutSubfieldsOrElements
+    // Todo: check that this method can be removed and remove it.
+    /*private static int getLengthRealBytesForParsedFieldWithoutSubfieldsOrElements
             (ISOMessage isoMessage, ParsedField parsedField, FIELDS field) {
         int length;
         // Getting of the length from FIELDS.
@@ -169,14 +264,14 @@ public class Encoder {
                 length = isoMessage.getFieldLength(parsedField.getId());
         }
         return length;
-    }
+    }*/
 
     /*
     If the transmitted field has subfields, this method sets its parsed subfields to this.
     The sequence of the bodies of the subfields are setting as the content of the parsedField.
     Note, in this moment the conversion of the parsedField content from the hex format is happening.
     */
-    private static HashMap<Integer, ParsedSubfield> getContentOfSubfields(ParsedField parsedField) throws ISOException {
+    static HashMap<Integer, ParsedSubfield> getContentOfSubfields(ParsedField parsedField) throws ISOException {
         int fieldId = parsedField.getId();
         FIELDS fields = FIELDS.valueOf(fieldId);
         HashMap<Integer, ParsedSubfield> subfields = new HashMap<>();
@@ -188,7 +283,7 @@ public class Encoder {
         return subfields;
     }
 
-    private static HashMap<Integer, ParsedElement> getContentOfElements(ParsedField parsedField) throws ISOException {
+    static HashMap<Integer, ParsedElement> getContentOfElements(ParsedField parsedField) throws ISOException {
         int fieldId = parsedField.getId();
         FIELDS fields = FIELDS.valueOf(fieldId);
         HashMap<Integer, ParsedElement> elements = parsedField.getElements();
@@ -235,7 +330,7 @@ public class Encoder {
     Returns the HashMap of the elements of the field if it has these.
     The content of the parsedField is represented in hex format.
     */
-    private static HashMap<Integer, ParsedElement> parseElements(ParsedField parsedField) throws ISOException {
+    static HashMap<Integer, ParsedElement> parseElements(ParsedField parsedField) throws ISOException {
         HashMap<Integer, ParsedElement> elements = new HashMap<Integer, ParsedElement>();
         String fieldContent = parsedField.getContent();
         // Formation of the parsed elements.
@@ -266,7 +361,7 @@ public class Encoder {
     Returns the real length (the quantity of symbols) of the content of the transmitted parsedElement.
     The first additional zero is considered.
     */
-    private static int getLengthInSymbolsOfElem(ParsedElement parsedElement) {
+    static int getLengthInSymbolsOfElem(ParsedElement parsedElement) {
         int elemLength = parsedElement.getLengthMIP();
         // Compressed format.
         if (parsedElement.getType().compareTo("%") == 0) {
@@ -286,7 +381,7 @@ public class Encoder {
     If the type of this is equal to "^", conversion from hex happens.
     In otherwise the conversion does not happen.
     */
-    private static String getElemContent
+    static String getElemContent
     (ParsedField parsedField, ParsedElement parsedElement, int indSym, int contentSymbolsRealCount) {
         String fieldContent = parsedField.getContent();
         // The content of an parsedElement takes positions begin at the 10th.
@@ -302,7 +397,7 @@ public class Encoder {
     Returns the subfields which contains parsed subfields.
     This method does not consider unfixed parsed fields!
     */
-    private static HashMap<Integer, ParsedSubfield> parseSubfields(ParsedField parsedField)
+    static HashMap<Integer, ParsedSubfield> parseSubfields(ParsedField parsedField)
             throws StringIndexOutOfBoundsException, ISOException {
         HashMap<Integer, ParsedSubfield> subfields = new HashMap<Integer, ParsedSubfield>();
         // Formation of the parsed subfields.
@@ -319,7 +414,7 @@ public class Encoder {
     Returns the formed parsedSubfield.
     This method does not consider unfixed parsed fields!
     */
-    private static ParsedSubfield formParsedSubfield(ParsedField parsedField, int subfieldId) throws ISOException {
+    static ParsedSubfield formParsedSubfield(ParsedField parsedField, int subfieldId) throws ISOException {
         int fieldId = parsedField.getId();
         SUBFIELDS subfieldSample = SUBFIELDS.valueOf(fieldId, subfieldId);
         if (subfieldSample == null)
@@ -339,7 +434,7 @@ public class Encoder {
         return parsedSubfield;
     }
 
-    private static String getSubfieldContent
+    static String getSubfieldContent
             (ParsedField parsedField, SUBFIELDS subfieldSample, int lengthRealOfParsedSubfield) {
         int beginInd = subfieldSample.getBeginInd();
         // The content of the subfield has been converted from the hex format already.
@@ -356,8 +451,8 @@ public class Encoder {
 
     /*
     Returns the real length (the quantity of symbols) of the transmitted parsedSubfield.
-     */
-    private static int getParsedSubfieldRealLength
+    */
+    static int getParsedSubfieldRealLength
     (ParsedField parsedField, ParsedSubfield parsedSubfield, int length) {
         // Compressed format.
         if (parsedSubfield.getType().compareTo("n") == 0 ||
@@ -372,13 +467,11 @@ public class Encoder {
         return length;
     }
 
-    // TODO: change the returned type from void to int
-    //  which will be used to return the transaction number.
     /*
     Returns the transaction number of the parsedMessage if it has the 2th element
     of the 63th field (Transaction Reference Number (TRN)).
-     */
-    private static String getTransactionNumber(ParsedMessage parsedMessage) {
+    */
+    static String getTransactionNumber(ParsedMessage parsedMessage) {
         int fieldId = 63;
         int subfieldId = 2;
         String transactionNumber;
@@ -400,9 +493,9 @@ public class Encoder {
     }
 
     /*
-   Accepts a binary number which has 4 ranks and converts into a hex number with one rank.
+    Accepts a binary number which has 4 ranks and converts into a hex number with one rank.
     */
-    private static char convertBinToHex(String numBin) {
+    static char convertBinToHex(String numBin) {
         switch(numBin) {
             case "0000":
                 return '0';

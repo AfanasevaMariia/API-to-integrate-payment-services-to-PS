@@ -10,7 +10,9 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Set;
 
 @Entity
 @JsonAutoDetect
@@ -106,4 +108,28 @@ public class ParsedMessage {
         this.edited = edited;
     }
     //endregion
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("ParsedMessage:\n");
+        str.append("\tid = " + id + "\n");
+        str.append("\tmti = " + mti + "\n");
+        str.append("\thex = " + hex + "\n");
+        str.append("\tedited = " + edited + "\n");
+        str.append("\ttransactionDate = " + transactionDate + "\n");
+        str.append("\ttransactionNumber = " +transactionNumber + "\n");
+        str.append("\tParsedFields:\n");
+        str.append(toStringParsedFields());
+        return str.toString();
+    }
+
+    private String toStringParsedFields() {
+        StringBuilder str = new StringBuilder();
+        Integer[] ids = Arrays.copyOf(fields.keySet().toArray(), fields.keySet().size(), Integer[].class);
+        Arrays.sort(ids);
+        for (int id : ids)
+            str.append(fields.get(id).toString());
+        return str.toString();
+    }
 }

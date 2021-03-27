@@ -8,6 +8,7 @@ import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 import mir.models.check_annotations.AnyOf;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 @JsonAutoDetect
@@ -95,6 +96,10 @@ public class ParsedField {
         this.subfields = subfields;
     }
 
+    public void setSubfield(ParsedSubfield parsedSubfield) {
+        subfields.put(parsedSubfield.getId(), parsedSubfield);
+    }
+
     public HashMap<Integer, ParsedElement> getElements() {
         return elements;
     }
@@ -102,13 +107,55 @@ public class ParsedField {
     public void setElements(HashMap<Integer, ParsedElement> elements) {
         this.elements = elements;
     }
+
+    // Todo: add to the documentation.
+    public void addElement(ParsedElement parsedElement) {
+        elements.put(parsedElement.getId(), parsedElement);
+    }
+
     // The end of the Getters and Setters.
 
-    @JsonIgnore
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("\t\tParsedField:\n");
+        str.append("\t\t\tid = " + id + "\n");
+        str.append("\t\t\ttype = " + type + "\n");
+        str.append("\t\t\tlengthMIP = " + lengthMIP + "\n");
+        // Todo: remove the addition below.
+        // str.append("\t\t\tlengthReal = " + lengthInSymbolsReal + "\n");
+        str.append("\t\t\tcontent = " + content + "\n");
+        str.append("\t\t\thasSubfields = " + hasSubfields + "\n");
+        str.append("\t\t\thasElements = " + hasElements + "\n");
+        str.append("\t\t\tSubfields:\n");
+        str.append(toStringParsedSubfields());
+        str.append("\t\t\tElements:\n");
+        str.append(toStringParsedElements());
+        return str.toString();
+    }
+
+    private String toStringParsedSubfields() {
+        StringBuilder str = new StringBuilder();
+        Integer[] ids = Arrays.copyOf(subfields.keySet().toArray(), subfields.keySet().size(), Integer[].class);
+        Arrays.sort(ids);
+        for (int id : ids)
+            str.append(subfields.get(id).toString());
+        return str.toString();
+    }
+
+    private String toStringParsedElements() {
+        StringBuilder str = new StringBuilder();
+        Integer[] ids = Arrays.copyOf(elements.keySet().toArray(), elements.keySet().size(), Integer[].class);
+        Arrays.sort(ids);
+        for (int id : ids)
+            str.append(elements.get(id).toString());
+        return str.toString();
+    }
+
+    /*@JsonIgnore
     public String getBodyOrElementsHexStr() throws ISOException {
         // TODO: realize the building of the content from subfields.
         // The parsedField contains content in its subfields.
-        //if (hasSubfields)
+        if (hasSubfields)
 
         // The parsedField contains content in its elements.
         if (hasElements)
@@ -146,20 +193,22 @@ public class ParsedField {
         for (Integer id : elements.keySet())
             elementsStr.append(elements.get(id).toString());
         return elementsStr.toString();
-    }
+    }*/
 
+    // Todo: remove the method.
     /*
     Returns the prefix of the length of the field if it has the mutable length.
     The length of a mutable field is represented by 4 decimal numbers.
     If the length takes not all the ranks, it has the front zeros.
-     */
+    */
     @JsonIgnore
-    public String getFieldLengthStr() throws ISOException {
-        FIELDS fieldImage = FIELDS.valueOf(id);
-        if (fieldImage.isFixed())
+    public String getFieldLengthStr(FIELDS field) throws ISOException {
+        // Todo: remove following lines.
+        /*if (fieldImage.isFixed())
             throw new ISOException("Field has not the prefix of the length!");
-        if (content == null)
-            throw new ISOException("Field has not a body!");
+        if (fieldSample == null)
+            throw new ISOException("Field has not a body!");*/
+        // Todo: the end.
         int length = content.length();
         StringBuilder lengthStr = new StringBuilder(Integer.toString(length));
         while(lengthStr.length() < 4)
