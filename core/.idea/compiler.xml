@@ -11,6 +11,7 @@
         <module name="routing" />
         <module name="lib" />
         <module name="repositories" />
+        <module name="change" />
         <module name="controllers" />
         <module name="services" />
         <module name="parsing" />
@@ -23,6 +24,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="ISO8583" options="-parameters" />
+      <module name="change" options="-parameters" />
       <module name="controllers" options="-parameters" />
       <module name="core" options="-parameters" />
       <module name="lib" options="-parameters" />
