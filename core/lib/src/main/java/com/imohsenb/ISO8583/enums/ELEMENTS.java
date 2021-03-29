@@ -1,11 +1,10 @@
 package com.imohsenb.ISO8583.enums;
 
-import java.security.Key;
 import java.util.HashMap;
 import java.util.Map;
 
 public enum ELEMENTS {
-    //                          |fieldNum   |elemNum      |type    |minLen       |maxLen       |fixed       |format
+    //                          |fieldNum   |elemNum      |type    |minLen       |maxLen           |fixed          |format
     E97_TextMessageToRecipient (48, 97,  "%",   1, 200,   false,  "LLL");
 
     private final int fieldNum;
@@ -16,7 +15,9 @@ public enum ELEMENTS {
     private final boolean fixed;
     private final String format;
 
-    ELEMENTS(int fieldNum, int elemNum, String type, int minLength, int maxLength, boolean fixed, String format) {
+    ELEMENTS(int fieldNum, int elemNum, String type,
+             int minLength, int maxLength,
+             boolean fixed, String format) {
         this.fieldNum = fieldNum;
         this.elemNum = elemNum;
         this.type = type;
@@ -32,14 +33,6 @@ public enum ELEMENTS {
         for (ELEMENTS _elements : ELEMENTS.values()) {
             map.put(_elements.getKeyForElement(), _elements);
         }
-    }
-
-    public int getFieldNum() {
-        return fieldNum;
-    }
-
-    public int getElemNum() {
-        return elemNum;
     }
 
     private KeyForFieldComponent getKeyForElement() {

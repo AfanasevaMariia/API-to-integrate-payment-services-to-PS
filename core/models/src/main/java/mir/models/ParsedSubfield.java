@@ -14,9 +14,7 @@ public class ParsedSubfield {
     private String type;
     // According to the MIP.
     private int lengthMIP;
-    // Which the field has in the message.
-    // Is different from the lengthMIP if the type of the field is "n" or "b".
-    private int lengthReal;
+
     private String content;
 
     // Getters and Setters.
@@ -45,14 +43,6 @@ public class ParsedSubfield {
         this.lengthMIP = lengthMIP;
     }
 
-    public int getLengthReal() {
-        return lengthReal;
-    }
-
-    public void setLengthReal(int lengthReal) {
-        this.lengthReal = lengthReal;
-    }
-
     public String getContent() {
         return content;
     }
@@ -67,5 +57,18 @@ public class ParsedSubfield {
     public String getHexContent() throws ISOException {
         String elementStr = StringUtil.asciiToHex(content);
         return elementStr;
+    }
+
+    @Override
+    public String toString ()  {
+        StringBuilder str  = new StringBuilder();
+        str.append("\t\t\t\tSubfield:\n");
+        str.append("\t\t\t\t\tid = " + id + "\n");
+        str.append("\t\t\t\t\ttype = " + type + "\n");
+        str.append("\t\t\t\t\tlengthMIP = " + lengthMIP + "\n");
+        // Todo: remove the addition of the lengthInSymbolsReal.
+        // str.append("\t\t\t\t\tlengthReal = " + lengthInSymbolsReal + "\n");
+        str.append("\t\t\t\t\tcontent = " + content + "\n");
+        return str.toString();
     }
 }

@@ -1,13 +1,10 @@
 package mir.models;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.imohsenb.ISO8583.enums.FIELDS;
-import com.imohsenb.ISO8583.exceptions.ISOException;
-import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 import mir.models.check_annotations.AnyOf;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 @JsonAutoDetect
@@ -19,9 +16,7 @@ public class ParsedField {
     private String type;
     // According to the MIP.
     private int lengthMIP;
-    // Which the field has in the message.
-    // Is different from the lengthMIP if the type of the field is "n" or "b".
-    private int lengthReal;
+
     private String content;
     private boolean hasSubfields = false;
     private boolean hasElements = false;
@@ -54,14 +49,6 @@ public class ParsedField {
         this.lengthMIP = lengthMIP;
     }
 
-    public int getLengthReal() {
-        return lengthReal;
-    }
-
-    public void setLengthReal(int lengthReal) {
-        this.lengthReal = lengthReal;
-    }
-
     public String getContent() {
         return content;
     }
@@ -90,6 +77,10 @@ public class ParsedField {
         this.subfields = subfields;
     }
 
+    public void setSubfield(ParsedSubfield parsedSubfield) {
+        subfields.put(parsedSubfield.getId(), parsedSubfield);
+    }
+
     public HashMap<Integer, ParsedElement> getElements() {
         return elements;
     }
@@ -97,66 +88,45 @@ public class ParsedField {
     public void setElements(HashMap<Integer, ParsedElement> elements) {
         this.elements = elements;
     }
+
+    // Todo: add to the documentation.
+    public void addElement(ParsedElement parsedElement) {
+        elements.put(parsedElement.getId(), parsedElement);
+    }
+
     // The end of the Getters and Setters.
 
-    @JsonIgnore
-    public String getBodyOrElementsHexStr() throws ISOException {
-        // The parsedField contains content in its elements.
-        if (hasElements)
-            return getElementsHexStr();
-            // The parsedField contains content in the body directly.
-        else {
-            if (type == "n" || type == "b")
-                return content;
-            else
-                return StringUtil.asciiToHex(content);
-        }
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("\t\tParsedField:\n");
+        str.append("\t\t\tid = " + id + "\n");
+        str.append("\t\t\ttype = " + type + "\n");
+        str.append("\t\t\tlengthMIP = " + lengthMIP + "\n");
+        str.append("\t\t\tcontent = " + content + "\n");
+        str.append("\t\t\thasSubfields = " + hasSubfields + "\n");
+        str.append("\t\t\thasElements = " + hasElements + "\n");
+        str.append("\t\t\tSubfields:\n");
+        str.append(toStringParsedSubfields());
+        str.append("\t\t\tElements:\n");
+        str.append(toStringParsedElements());
+        return str.toString();
     }
 
-    @JsonIgnore
-    public String getBodyOrElementsStr() throws ISOException {
-        if (hasElements)
-            // The parsedField contains content in its elements.
-            return getElementsStr();
-        else
-            // The parsedField contains content in the body directly.
-            return content;
+    private String toStringParsedSubfields() {
+        StringBuilder str = new StringBuilder();
+        Integer[] ids = Arrays.copyOf(subfields.keySet().toArray(), subfields.keySet().size(), Integer[].class);
+        Arrays.sort(ids);
+        for (int id : ids)
+            str.append(subfields.get(id).toString());
+        return str.toString();
     }
 
-    private String getElementsHexStr() throws ISOException {
-        if (!hasElements)
-            throw new ISOException("Field has not elements!");
-        StringBuilder elementsStr = new StringBuilder();
-        for (Integer id : elements.keySet())
-            elementsStr.append(elements.get(id).getHexString());
-        return elementsStr.toString();
-    }
-
-    private String getElementsStr() throws ISOException {
-        if (!hasElements)
-            throw new ISOException("Field has not elements!");
-        StringBuilder elementsStr = new StringBuilder();
-        for (Integer id : elements.keySet())
-            elementsStr.append(elements.get(id).toString());
-        return elementsStr.toString();
-    }
-
-    /*
-    Returns the prefix of the length of the field if it has the mutable length.
-    The length of a mutable field is represented by 4 decimal numbers.
-    If the length takes not all the ranks, it has the front zeros.
-     */
-    @JsonIgnore
-    public String getFieldLengthStr() throws ISOException {
-        FIELDS fieldImage = FIELDS.valueOf(id);
-        if (fieldImage.isFixed())
-            throw new ISOException("Field has not the prefix of the length!");
-        if (content == null)
-            throw new ISOException("Field has not a body!");
-        int length = content.length();
-        StringBuilder lengthStr = new StringBuilder(Integer.toString(length));
-        while(lengthStr.length() < 4)
-            lengthStr.insert(0, 0);
-        return lengthStr.toString();
+    private String toStringParsedElements() {
+        StringBuilder str = new StringBuilder();
+        Integer[] ids = Arrays.copyOf(elements.keySet().toArray(), elements.keySet().size(), Integer[].class);
+        Arrays.sort(ids);
+        for (int id : ids)
+            str.append(elements.get(id).toString());
+        return str.toString();
     }
 }
