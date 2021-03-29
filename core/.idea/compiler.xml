@@ -18,6 +18,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="check" target="11" />
       <module name="ISO8583" target="11" />
     </bytecodeTargetLevel>
   </component>
