@@ -465,29 +465,18 @@ public class Encoder {
         return length;
     }
 
+    // Todo: change description in the documentation if it is necessary:
+    //  Here the using field is changed. the 2th subfield of the 63th field -> the 37th field.
     /*
-    Returns the transaction number of the parsedMessage if it has the 2th element
-    of the 63th field (Transaction Reference Number (TRN)).
+    Returns the transaction number of the parsedMessage if it has the 37th field.
+    Else returns null.
     */
     static String getTransactionNumber(ParsedMessage parsedMessage) {
-        int fieldId = 63;
-        int subfieldId = 2;
-        String transactionNumber;
+        int fieldId = 37;
         // If the required field is set.
-        if (parsedMessage.getFields().containsKey(fieldId)) {
-            ParsedField parsedField = parsedMessage.getFields().get(fieldId);
-            // If the subfield is set.
-            if (parsedField.getSubfields().containsKey(subfieldId)) {
-                ParsedSubfield parsedSubfield = parsedField.getSubfields().get(subfieldId);
-                transactionNumber = parsedSubfield.getContent();
-            }
-            else
-                transactionNumber = null;
-        }
-        else
-            // Setting of the mark that the transactionNumber is not set.
-            transactionNumber = null;
-        return transactionNumber;
+        if (parsedMessage.getFields().containsKey(fieldId))
+            return parsedMessage.getFields().get(fieldId).getContent();
+        return null;
     }
 
     /*

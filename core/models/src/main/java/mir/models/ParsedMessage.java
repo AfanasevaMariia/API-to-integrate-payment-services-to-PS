@@ -30,7 +30,6 @@ public class ParsedMessage {
     private String hex;
     private boolean edited;
     private LocalDateTime transactionDate;
-    @Pattern(regexp = "[0-9]{16}")
     private String transactionNumber;
 
     @Transient
