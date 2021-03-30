@@ -38,8 +38,9 @@ public class MessageController {
 
     /**
      * Example: 2021-03-07T21:35:44
+     *
      * @param start start date
-     * @param end end date
+     * @param end   end date
      * @return list of messages
      */
     @GetMapping(path = "/date")

@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface IMessageService {
 
+    //region CRUD operations
     List<ParsedMessage> getAll();
 
     void add(ParsedMessage parsedMessage);
@@ -35,4 +36,5 @@ public interface IMessageService {
     void deleteAllByHex(String hex);
 
     void deleteAllByEdited(boolean edited);
+    //endregion
 }

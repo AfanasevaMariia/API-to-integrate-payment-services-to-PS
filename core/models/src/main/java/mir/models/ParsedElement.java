@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.imohsenb.ISO8583.utils.StringUtil;
 import lombok.NoArgsConstructor;
 
-
 @JsonAutoDetect
 @NoArgsConstructor
 public class ParsedElement {
