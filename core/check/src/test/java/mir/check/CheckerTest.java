@@ -41,7 +41,7 @@ class CheckerTest {
         // 41 (ans, 8)
         // String probaMessage = "010000000000008000003031323334353637"; // +
         // 35 (ans, 1-37, LL)
-        // String probaMessage = "01000000000020000000023337"; // +
+         String probaMessage = "01000000000020000000023337"; // +
         // 48 (ans, 6-999, LLL)
         // The 97th subfield of the 48th field.
         // String probaMessage = "01000000000000010000000925363130390999999999"; // len of the 48th field = 0009. // +
