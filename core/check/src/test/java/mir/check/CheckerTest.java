@@ -27,7 +27,7 @@ class CheckerTest {
     @Test
     void testParsedMessageMtiCorrect() throws IOException, ISOException, NoSuchFieldException, IllegalAccessException {
         // 3, 48.
-         String probaMessage = "0100200000000001000092000000092536313034696E"; // +
+        // String probaMessage = "0100200000000001000092000000092536313034696E"; // +
 
         // Test of the table.
         // 22 (n, 3)

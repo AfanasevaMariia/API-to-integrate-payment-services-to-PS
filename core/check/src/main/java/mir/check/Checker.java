@@ -104,6 +104,8 @@ public class Checker {
         return errors;
     }
 
+    // Todo: add to the documentation (if time is enough) that we do no this the cehck of @Pattern annotation
+    //  but provide the opportunities to check it if it is needed.
     /*
     Checks the match of the field value with the pattern from the @Pattern annotation.
      */
