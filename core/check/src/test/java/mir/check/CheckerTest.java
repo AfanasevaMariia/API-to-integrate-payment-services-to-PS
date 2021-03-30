@@ -27,7 +27,7 @@ class CheckerTest {
     @Test
     void testParsedMessageMtiCorrect() throws IOException, ISOException, NoSuchFieldException, IllegalAccessException {
         // 3, 48.
-        // String probaMessage = "0100200000000001000092000000092536313034696E"; // +
+         String probaMessage = "0100200000000001000092000000092536313034696E"; // +
 
         // Test of the table.
         // 22 (n, 3)
@@ -46,7 +46,7 @@ class CheckerTest {
         // The 97th subfield of the 48th field.
         // String probaMessage = "01000000000000010000000925363130390999999999"; // len of the 48th field = 0009. // +
         // The 63th field. The 2th subfield.
-         String probaMessage = "010000000000000000023030303023232323232323234D4D4D"; // +
+        // String probaMessage = "010000000000000000023030303023232323232323234D4D4D"; // +
         ISOMessage isoMessageProba = null;
         try {
             isoMessageProba = ISOMessageBuilder.Unpacker()

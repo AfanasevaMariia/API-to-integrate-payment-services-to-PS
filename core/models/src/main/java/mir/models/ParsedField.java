@@ -11,7 +11,7 @@ import java.util.HashMap;
 @NoArgsConstructor
 public class ParsedField {
 
-    @AnyOf(values = {"2", "4", "12", "13", "23", "42", "48", "49", "63"})
+    @AnyOf(values = {"2", "3", "4", "12", "13", "23", "42", "48", "49", "63"})
     private int id;
     private String type;
     // According to the MIP.
