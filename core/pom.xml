@@ -13,6 +13,7 @@
         <module>parsing</module>
         <module>lib</module>
         <module>check</module>
+        <module>change</module>
     </modules>
 
     <parent>
