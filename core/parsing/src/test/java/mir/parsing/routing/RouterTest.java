@@ -26,6 +26,14 @@ class RouterTest {
         System.out.println(parsedMessage);
     }
 
+    @Test
+    void getParseMessageWith_F37() throws ISOException {
+        // Fields: 7, 11, 37.
+        String encodedMessage = "010002200000080000020330163303000001108916000001";
+        ParsedMessage parsedMessage = Router.getParsedMessage(encodedMessage);
+        System.out.println(parsedMessage);
+    }
+
     /*
     A getting hex is equal to the hex of the parsedMessage.
     */
