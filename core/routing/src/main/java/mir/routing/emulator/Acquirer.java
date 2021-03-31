@@ -11,7 +11,6 @@ import mir.models.MessageError;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
 import mir.services.IMessageService;
-import mir.services.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
-@RequestMapping("/main")
 public class Acquirer {
 
     private final IMessageService service;
@@ -50,7 +48,6 @@ public class Acquirer {
 
     @GetMapping(path = "/api")
     public ResponseEntity<String> getRequest(@RequestParam(name = "Payload") String payload) {
-        System.out.println(payload);
         if (payload != null && !payload.isBlank()) {
             try {
                 // Check.
@@ -67,7 +64,7 @@ public class Acquirer {
                     // Send request to platform and get response.
                     respText = sendRequest(Router.getEncodedMessage(formedMessage));
 
-                    // Return response from Platform.
+                    // Return response from Issuer.
                     return new ResponseEntity<>(respText, HttpStatus.OK);
                 } else {
                     // --- INCORRECT PARAM CONTENT --- //
@@ -87,8 +84,8 @@ public class Acquirer {
                 return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
             } catch (NoSuchFieldException ex) {
                 return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-            } catch (IllegalAccessException neverThrowed) {
-                return new ResponseEntity<>(neverThrowed.getMessage(), HttpStatus.BAD_REQUEST);
+            } catch (IllegalAccessException neverThrown) {
+                return new ResponseEntity<>(neverThrown.getMessage(), HttpStatus.BAD_REQUEST);
             }
         } else {
             return new ResponseEntity<>("Message is empty", HttpStatus.BAD_REQUEST);

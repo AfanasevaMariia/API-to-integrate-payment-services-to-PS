@@ -1,11 +1,5 @@
 package mir.routing;
 
-import mir.repositories.CardRepository;
-import mir.repositories.IMessageRepository;
-import mir.repositories.UserRepository;
-import mir.services.CardServiceImpl;
-import mir.services.MessageService;
-import mir.services.UserServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
