@@ -1,12 +1,12 @@
 package mir.models;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.time.LocalDate;
 
-// For FIT-service
+/**
+ * For Fundraising
+ */
 @Entity
 public class Card {
 
@@ -15,7 +15,6 @@ public class Card {
     private LocalDate expiryDate;
     private String holderName;
     private String CVC;
-
     private Double money;
 
     //region Getters and Setters

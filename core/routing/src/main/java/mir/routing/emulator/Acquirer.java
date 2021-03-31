@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
-@RequestMapping
+@RequestMapping("/main")
 public class Acquirer {
 
     private final IMessageService service;

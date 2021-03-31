@@ -3,9 +3,11 @@ package mir.services;
 import mir.models.Card;
 import mir.repositories.CardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+@Service
 public class CardServiceImpl implements CardService {
 
     private CardRepository repository;
