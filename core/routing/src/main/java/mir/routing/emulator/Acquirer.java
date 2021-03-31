@@ -13,117 +13,81 @@ import mir.check.Checker;
 import mir.models.MessageError;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
+import mir.routing.Application;
+import org.springframework.boot.SpringApplication;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
 import static mir.routing.constants.Constants.Ports.PLATFORM_MODULE;
 
+@RestController
+@RequestMapping
 public class Acquirer {
-    private static int port;
 
-    private static String sendHttpRequest(int sendPort, String payloadContent) throws IOException {
-        // Configure request.
-        URL url = new URL(String.format("http://localhost:%d/api", sendPort));
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Content-type", "text/plain");
-        connection.setRequestProperty("Content-Length", Integer.toString(payloadContent.getBytes().length));
-        connection.setRequestProperty(PAYLOAD_HEADER, payloadContent);
+    private final String URI = "http://localhost:8080/api"; // TODO: change to actual URI.
 
-        // Send request.
-        InputStream responseStream = connection.getInputStream();
+    private String sendRequest(String hex) {
+        // Form new Http-request to Platform and get response from it.
+        RestTemplate restTemplate = new RestTemplate();
 
-        // Get response.
-        BufferedReader in = new BufferedReader(new InputStreamReader(responseStream));
-        StringBuffer response = new StringBuffer();
-        String inLine;
-        while ((inLine = in.readLine()) != null) {
-            response.append(inLine);
-        }
-        in.close();
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add("Payload", hex);
 
-        return String.format("%s", response.toString());
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);
+
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
+                URI,
+                HttpMethod.GET,
+                requestEntity,
+                String.class
+        );
+
+        return responseEntity.getBody();
     }
 
-    private static void handleGetRequest(HttpExchange exchange) throws IOException, ISOException, NoSuchFieldException, IllegalAccessException {
-        String respText;
-        OutputStream output;
+    @GetMapping(path = "/api")
+    public ResponseEntity<String> getRequest(@RequestHeader(name = "Payload") String payload) {
+        System.out.println(payload);
+        if (payload != null && !payload.isBlank()) {
+            try {
+                // Check.
+                ParsedMessage parsedMessage = Router.getParsedMessage(payload);
+                List<MessageError> errorsList = Checker.checkParsedMessage(parsedMessage);
 
-        Headers headers = exchange.getRequestHeaders(); /*"No headers found in the request. Add header to get response.\n"*/;
+                String respText;
+                if (errorsList.size() != 0) {
+                    // --- CORRECT PAYLOAD CONTENT --- //
+                    ParsedMessage formedMessage = parsedMessage; // TODO: Message forming module.
 
-        if (headers.containsKey(PAYLOAD_HEADER)) {
-            // --- CORRECT HTTP REQUEST --- //
-            String payloadContent = headers.getFirst(PAYLOAD_HEADER);
+                    // Send request to platform and get response.
+                    respText = sendRequest(formedMessage.getHex());
 
-            ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
+                    // Return response from Platform.
+                    return new ResponseEntity<>(respText, HttpStatus.OK);
+                } else {
+                    // --- INCORRECT PAYLOAD CONTENT --- //
+                    StringBuilder errors = new StringBuilder();
 
-            List<MessageError> errorsList = Checker.checkParsedMessage(parsedMessage);
+                    for (var error: errorsList) {
+                        errors.append(error.getMessage()).append("\n");
+                    }
+                    respText = String.format("Incorrect payload content format.\n%s", errors.toString());
 
-            if (errorsList.size() == 0) {
-                // --- CORRECT HEADER CONTENT --- //
-                ParsedMessage parsedMessage1 = parsedMessage; // TODO: модуль формирования сообщений.
-
-                respText = sendHttpRequest(PLATFORM_MODULE, Router.getEncodedMessage(parsedMessage1));
-
-                exchange.sendResponseHeaders(200, respText.getBytes().length);
-                output = exchange.getResponseBody();
-            } else {
-                // --- INCORRECT HEADER CONTENT --- //
-                StringBuffer errors = new StringBuffer();
-
-                for (var error: errorsList) {
-                    errors.append(error.getMessage() + "\n");
+                    // Return error response immediately.
+                    return new ResponseEntity<>(respText, HttpStatus.BAD_REQUEST); // TODO: Is status ok?
                 }
-                respText = String.format("Incorrect \"%s\" header content format.\n %s", PAYLOAD_HEADER, errors.toString());
-
-                exchange.sendResponseHeaders(422, respText.getBytes().length);
-                output = exchange.getResponseBody();
+            } catch (ISOException ex) {
+                return new ResponseEntity<>("ISOException", HttpStatus.BAD_REQUEST); // TODO: Is status ok?
+            } catch (NoSuchFieldException ex) {
+                return new ResponseEntity<>("NoSuchFieldException", HttpStatus.BAD_REQUEST); // TODO: Is status ok?
+            } catch (IllegalAccessException ex) {
+                return new ResponseEntity<>("IllegalAccessException", HttpStatus.BAD_REQUEST); // TODO: Is status ok?
             }
         } else {
-            // --- NO HEADER IN HTTP REQUEST --- //
-            respText = String.format("No \"%s\" header found in the request. Add header to get response.\n", PAYLOAD_HEADER);
-
-            exchange.sendResponseHeaders(400, respText.getBytes().length);
-            output = exchange.getResponseBody();
+            return new ResponseEntity<>("Message is empty", HttpStatus.BAD_REQUEST); // TODO: Is status ok?
         }
-
-
-        output.write(respText.getBytes());
-        output.flush();
-    }
-
-    private static void handleWrongRequest(HttpExchange exchange) throws IOException {
-        // 405 Method Not Allowed.
-        exchange.sendResponseHeaders(405, -1);
-    }
-
-    public static void start() {
-        try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-
-            server.createContext("/api", (exchange -> {
-                if ("GET".equals(exchange.getRequestMethod())) {
-                    try {
-                        handleGetRequest(exchange);
-                    } catch (Exception ex) {
-                        // TODO: обработать.
-                    }
-                } else {
-                    handleWrongRequest(exchange);
-                }
-                exchange.close();
-            }));
-
-            // Creates a default executor.
-            server.setExecutor(null);
-            server.start();
-        } catch (IOException ex) {
-            // TODO: отреагировать по-нормальному.
-            System.out.println("Некая какая-то проблема на стороне сервера.");
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    public Acquirer(int port) {
-        this.port = port;
     }
 }

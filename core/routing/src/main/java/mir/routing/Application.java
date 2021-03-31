@@ -30,9 +30,6 @@ import java.time.LocalDateTime;
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-
-        Acquirer acquirer = new Acquirer(Constants.Ports.ACQUIRER_MODULE);
-        acquirer.start();
     }
 
     @Bean
