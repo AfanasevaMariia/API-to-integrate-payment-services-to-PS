@@ -39,7 +39,7 @@ public class Acquirer {
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
                 uriBuilder.toUriString(),
-                HttpMethod.POST,
+                HttpMethod.GET,
                 null,
                 String.class
         );
