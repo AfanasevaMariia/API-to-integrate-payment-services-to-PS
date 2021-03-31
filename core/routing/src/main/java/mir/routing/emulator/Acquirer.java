@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
+@RequestMapping("/main")
 public class Acquirer {
 
     private final IMessageService service;
@@ -38,7 +39,7 @@ public class Acquirer {
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
                 uriBuilder.toUriString(),
-                HttpMethod.GET,
+                HttpMethod.POST,
                 null,
                 String.class
         );
