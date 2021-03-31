@@ -4,6 +4,7 @@ import com.imohsenb.ISO8583.exceptions.ISOException;
 
 import java.util.List;
 
+import mir.change.Changer;
 import mir.check.Checker;
 import mir.models.MessageError;
 import mir.models.ParsedMessage;
@@ -11,6 +12,7 @@ import mir.parsing.routing.Router;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequestMapping
@@ -22,15 +24,13 @@ public class Acquirer {
         // Form new Http-request to Platform and get response from it.
         RestTemplate restTemplate = new RestTemplate();
 
-        HttpHeaders requestHeaders = new HttpHeaders();
-        requestHeaders.add("Payload", hex);
-
-        HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(URI)
+                .queryParam("Payload", hex);
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(
-                URI,
+                uriBuilder.toUriString(),
                 HttpMethod.GET,
-                requestEntity,
+                null,
                 String.class
         );
 
@@ -38,7 +38,7 @@ public class Acquirer {
     }
 
     @GetMapping(path = "/api")
-    public ResponseEntity<String> getRequest(@RequestHeader(name = "Payload") String payload) {
+    public ResponseEntity<String> getRequest(@RequestParam(name = "Payload") String payload) {
         System.out.println(payload);
         if (payload != null && !payload.isBlank()) {
             try {
@@ -47,9 +47,11 @@ public class Acquirer {
                 List<MessageError> errorsList = Checker.checkParsedMessage(parsedMessage);
 
                 String respText;
-                if (errorsList.size() != 0) {
+                if (errorsList.size() == 0) {
                     // --- CORRECT PAYLOAD CONTENT --- //
-                    ParsedMessage formedMessage = parsedMessage; // TODO: Message forming module.
+                    ParsedMessage formedMessage = Changer.completeParsedMessageRequest(parsedMessage);
+
+                    // TODO: save formedMessage to DB.
 
                     // Send request to platform and get response.
                     respText = sendRequest(formedMessage.getHex());
