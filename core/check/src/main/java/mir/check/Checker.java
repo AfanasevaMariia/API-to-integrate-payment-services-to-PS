@@ -152,8 +152,7 @@ public class Checker {
     on the using only the hexadecimal numbers.
      */
     private static List<MessageError> checkLengthAndTypeOfPrimaryBitmap
-    (ParsedMessage parsedMessage, List<MessageError> errors)
-            throws NoSuchFieldException, IllegalAccessException {
+    (ParsedMessage parsedMessage, List<MessageError> errors) {
         String hex = parsedMessage.getHex();
         // The quantity of symbols is not enough for the representation of the primary bitmap.
         if (hex.length() < 20) {
