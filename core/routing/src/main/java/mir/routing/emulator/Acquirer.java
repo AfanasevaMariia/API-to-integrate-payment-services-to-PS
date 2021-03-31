@@ -1,27 +1,16 @@
 package mir.routing.emulator;
 
 import com.imohsenb.ISO8583.exceptions.ISOException;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 
-import java.io.*;
-import java.net.*;
 import java.util.List;
 
 import mir.check.Checker;
 import mir.models.MessageError;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
-import mir.routing.Application;
-import org.springframework.boot.SpringApplication;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-
-import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
-import static mir.routing.constants.Constants.Ports.PLATFORM_MODULE;
 
 @RestController
 @RequestMapping
