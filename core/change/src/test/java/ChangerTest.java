@@ -1,4 +1,5 @@
 import com.imohsenb.ISO8583.exceptions.ISOException;
+import mir.change.Changer;
 import mir.models.ParsedField;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
@@ -112,7 +113,7 @@ class ChangerTest {
     }
 
     /*
-    Must fail because the message with this mti is not expected by the Changer.
+    Must fail because the message with this mti is not expected by the mir.change.Changer.
      */
     @Test
     void formResponseFor_0800() throws ISOException {

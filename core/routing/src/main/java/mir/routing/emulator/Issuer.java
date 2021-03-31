@@ -4,6 +4,7 @@ import com.imohsenb.ISO8583.exceptions.ISOException;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import mir.change.Changer;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
 
@@ -27,9 +28,11 @@ public class Issuer {
             String payloadContent = headers.getFirst(PAYLOAD_HEADER);
 
             ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
-            ParsedMessage parsedMessage1 = parsedMessage; // TODO: модуль формирования сообщения.
+            ParsedMessage formedMessage = Changer.formResponse(parsedMessage);
 
-            respText = Router.getEncodedMessage(parsedMessage1);
+            // TODO: save message to DB
+
+            respText = Router.getEncodedMessage(formedMessage);
 
             exchange.sendResponseHeaders(200, respText.getBytes().length);
             output = exchange.getResponseBody();

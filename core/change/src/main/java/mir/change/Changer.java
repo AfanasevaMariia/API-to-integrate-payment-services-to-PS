@@ -1,3 +1,5 @@
+package mir.change;
+
 import mir.models.ParsedMessage;
 
 public class Changer {
