@@ -1,88 +1,49 @@
 package mir.routing.emulator;
 
 import com.imohsenb.ISO8583.exceptions.ISOException;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 import mir.change.Changer;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
+import mir.services.IMessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.*;
-import java.net.*;
 
-import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
-import static mir.routing.constants.Constants.Ports.ISSUER_MODULE;
-
+@RestController
 public class Issuer {
-    private static int port;
 
-    private static void handleGetRequest(HttpExchange exchange) throws IOException, ISOException {
-        String respText;
-        OutputStream output;
+    private final IMessageService service;
 
-        Headers headers = exchange.getRequestHeaders();
+    @Autowired
+    public Issuer(IMessageService service) {
+        this.service = service;
+    }
 
-        if (headers.containsKey(PAYLOAD_HEADER)) {
-            // --- CORRECT HTTP REQUEST --- //
-            String payloadContent = headers.getFirst(PAYLOAD_HEADER);
+    @GetMapping(path = "/api")
+    public ResponseEntity<String> getRequest(@RequestParam(name = "Payload") String payload) {
+        if (payload != null && !payload.isBlank()) {
+            try {
+                ParsedMessage parsedMessage = Router.getParsedMessage(payload);
+                ParsedMessage formedMessage = Changer.formResponse(parsedMessage);
 
-            ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
-            ParsedMessage formedMessage = Changer.formResponse(parsedMessage);
+                service.add(parsedMessage);
 
-            // TODO: save message to DB
+                String respText = Router.getEncodedMessage(formedMessage);
 
-            respText = Router.getEncodedMessage(formedMessage);
-
-            exchange.sendResponseHeaders(200, respText.getBytes().length);
-            output = exchange.getResponseBody();
+                // Return response.
+                return new ResponseEntity<>(respText, HttpStatus.OK);
+            } catch (IOException neverThrown) {
+                return new ResponseEntity<>(neverThrown.getMessage(), HttpStatus.BAD_REQUEST);
+            } catch (ISOException ex) {
+                return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            }
         } else {
-            // --- NO HEADER IN HTTP REQUEST --- //
-            respText = String.format("No \"%s\" header found in the request. Add header to get response.\n", PAYLOAD_HEADER);
-
-            exchange.sendResponseHeaders(400, respText.getBytes().length);
-            output = exchange.getResponseBody();
+            return new ResponseEntity<>("Query can't be empty", HttpStatus.BAD_REQUEST);
         }
-
-
-        output.write(respText.getBytes());
-        output.flush();
-    }
-
-    private static void handleWrongRequest(HttpExchange exchange) throws IOException {
-        // 405 Method Not Allowed.
-        exchange.sendResponseHeaders(405, -1);
-    }
-
-
-    public static void start() {
-        try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-
-            server.createContext("/api", (exchange -> {
-                if ("GET".equals(exchange.getRequestMethod())) {
-                    try {
-                        handleGetRequest(exchange);
-                    } catch (ISOException e) {
-                        // TODO: обработать.
-                    }
-                } else {
-                    handleWrongRequest(exchange);
-                }
-                exchange.close();
-            }));
-
-            // Creates a default executor.
-            server.setExecutor(null);
-            server.start();
-        } catch (IOException ex) {
-            // TODO: отреагировать по-нормальному.
-            System.out.println("Некая какая-то проблема на стороне сервера.");
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    public Issuer(int port) {
-        this.port = port;
     }
 }

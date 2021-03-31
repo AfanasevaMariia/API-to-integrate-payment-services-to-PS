@@ -1,9 +1,5 @@
 package mir.routing;
 
-//import mir.routing.exception.UnsupportedMessageTypeIDException;
-
-import mir.routing.constants.Constants;
-import mir.routing.emulator.Issuer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -19,11 +15,6 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.time.LocalDateTime;
-
 @SpringBootApplication
 @EntityScan(basePackages = "mir.models")
 @ComponentScan(basePackages = "mir")
@@ -33,9 +24,6 @@ public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-
-        Issuer issuer = new Issuer(Constants.Ports.ISSUER_MODULE);
-        issuer.start();
     }
 
     @Bean
