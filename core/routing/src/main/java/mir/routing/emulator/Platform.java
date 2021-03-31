@@ -71,9 +71,10 @@ public class Platform {
             String payloadContent = headers.getFirst(PAYLOAD_HEADER);
 
             ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
-            ParsedMessage parsedMessage1 = parsedMessage; // TODO: модуль формирования сообщения.
 
-            respText = sendHttpRequest(ISSUER_MODULE, Router.getEncodedMessage(parsedMessage1));
+            // TODO: save message to DB?
+
+            respText = sendHttpRequest(ISSUER_MODULE, Router.getEncodedMessage(parsedMessage));
 
             exchange.sendResponseHeaders(200, respText.getBytes().length);
             output = exchange.getResponseBody();
