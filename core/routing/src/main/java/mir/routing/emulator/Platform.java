@@ -1,129 +1,71 @@
 package mir.routing.emulator;
 
 import com.imohsenb.ISO8583.exceptions.ISOException;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 import mir.models.ParsedMessage;
 import mir.parsing.routing.Router;
-import mir.routing.exception.PortNotFoundException;
+import mir.services.IMessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.*;
-import java.net.*;
 
-import static mir.routing.constants.Constants.Headers.PAYLOAD_HEADER;
-import static mir.routing.constants.Constants.Ports.*;
-
-
+@RestController
 public class Platform {
-    private static int port;
 
-    private static int getSendPort(int mti) throws PortNotFoundException {
-        switch (port) {
-            case ACQUIRER_MODULE:
-            case ISSUER_MODULE:
-                return PLATFORM_MODULE;
-            case PLATFORM_MODULE:
-                if (mti == 0100) {
-                    return ISSUER_MODULE;
-                } else /*if (mti == 0110)*/ {
-                    return ACQUIRER_MODULE;
-                }
-            default:
-                // TODO: Change to Exception type, not RuntimeException.
-                throw new PortNotFoundException("There's no module with port provided");
-        }
+    private final IMessageService service;
+
+    @Autowired
+    public Platform(IMessageService service) {
+        this.service = service;
     }
 
+    private final String URI = "http://localhost:8080/api"; // TODO: change to actual URI.
 
-    private static String sendHttpRequest(int sendPort, String payloadContent) throws IOException {
-        // Configure request.
-        URL url = new URL(String.format("http://localhost:%d/api", sendPort)); // TODO: getPort(mti);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Content-type", "text/plain");
-        connection.setRequestProperty("Content-Length", Integer.toString(payloadContent.getBytes().length));
-        connection.setRequestProperty(PAYLOAD_HEADER, payloadContent);
+    private String sendRequest(String hex) {
+        // Form new Http-request to Issuer and get response from it.
+        RestTemplate restTemplate = new RestTemplate();
 
-        // Send request.
-        InputStream responseStream = connection.getInputStream();
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(URI)
+                .queryParam("Payload", hex);
 
-        // Get response.
-        BufferedReader in = new BufferedReader(new InputStreamReader(responseStream));
-        StringBuffer response = new StringBuffer();
-        String inLine;
-        while ((inLine = in.readLine()) != null) {
-            response.append(inLine);
-        }
-        in.close();
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
+                uriBuilder.toUriString(),
+                HttpMethod.GET,
+                null,
+                String.class
+        );
 
-        return String.format("%s", response.toString());
+        return responseEntity.getBody();
     }
 
-    private static void handleGetRequest(HttpExchange exchange) throws IOException, ISOException {
-        String respText;
-        OutputStream output;
+    @GetMapping(path = "/api")
+    public ResponseEntity<String> getRequest(@RequestParam(name = "Payload") String payload) {
+        if (payload != null && !payload.isBlank()) {
+            try {
+                // Check.
+                ParsedMessage parsedMessage = Router.getParsedMessage(payload);
 
-        Headers headers = exchange.getRequestHeaders(); /*"No headers found in the request. Add header to get response.\n"*/;
+                service.add(parsedMessage);
 
-        if (headers.containsKey(PAYLOAD_HEADER)) {
-            // --- CORRECT HTTP REQUEST --- //
-            String payloadContent = headers.getFirst(PAYLOAD_HEADER);
+                // Send request to platform and get response.
+                String respText = sendRequest(Router.getEncodedMessage(parsedMessage));
 
-            ParsedMessage parsedMessage = Router.getParsedMessage(payloadContent);
-
-            // TODO: save message to DB?
-
-            respText = sendHttpRequest(ISSUER_MODULE, Router.getEncodedMessage(parsedMessage));
-
-            exchange.sendResponseHeaders(200, respText.getBytes().length);
-            output = exchange.getResponseBody();
+                // Return response from Platform.
+                return new ResponseEntity<>(respText, HttpStatus.OK);
+            } catch (IOException neverThrown) {
+                return new ResponseEntity<>(neverThrown.getMessage(), HttpStatus.BAD_REQUEST);
+            } catch (ISOException ex) {
+                return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+            }
         } else {
-            // --- NO HEADER IN HTTP REQUEST --- //
-            respText = String.format("No \"%s\" header found in the request. Add header to get response.\n", PAYLOAD_HEADER);
-
-            exchange.sendResponseHeaders(400, respText.getBytes().length);
-            output = exchange.getResponseBody();
+            return new ResponseEntity<>("Query can't be empty", HttpStatus.BAD_REQUEST);
         }
-
-
-        output.write(respText.getBytes());
-        output.flush();
-    }
-
-    private static void handleWrongRequest(HttpExchange exchange) throws IOException {
-        // 405 Method Not Allowed.
-        exchange.sendResponseHeaders(405, -1);
-    }
-
-    public static void start() {
-        try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-
-            server.createContext("/api", (exchange -> {
-                if ("GET".equals(exchange.getRequestMethod())) {
-                    try {
-                        handleGetRequest(exchange);
-                    } catch (ISOException e) {
-                        // TODO: обработать.
-                    }
-                } else {
-                    handleWrongRequest(exchange);
-                }
-                exchange.close();
-            }));
-
-            // Creates a default executor.
-            server.setExecutor(null);
-            server.start();
-        } catch (IOException ex) {
-            // TODO: отреагировать по-нормальному.
-            System.out.println("Некая какая-то проблема на стороне сервера.");
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    public Platform(int port) {
-        this.port = port;
     }
 }

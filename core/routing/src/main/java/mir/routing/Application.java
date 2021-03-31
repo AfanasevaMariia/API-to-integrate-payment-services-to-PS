@@ -1,7 +1,5 @@
 package mir.routing;
 
-import mir.routing.constants.Constants;
-import mir.routing.emulator.Platform;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -17,11 +15,6 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.time.LocalDateTime;
-
 @SpringBootApplication
 @EntityScan(basePackages = "mir.models")
 @ComponentScan(basePackages = "mir")
@@ -30,9 +23,6 @@ import java.time.LocalDateTime;
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
-
-        Platform platform = new Platform(Constants.Ports.PLATFORM_MODULE);
-        platform.start();
     }
 
     @Bean
