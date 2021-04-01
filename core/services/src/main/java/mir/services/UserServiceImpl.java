@@ -1,5 +1,6 @@
 package mir.services;
 
+import com.google.common.primitives.UnsignedLong;
 import mir.models.User;
 import mir.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +22,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean existsByCardNumber(String cardNumber) {
         //cardNumber.replaceFirst("^0+(?!$)", "");
-        long currentCardNumber = Long.parseLong(cardNumber);
-        return repository.existsByCardNumber(Long.toString(currentCardNumber));
+        UnsignedLong currentCardNumber = UnsignedLong.valueOf(cardNumber);
+        return repository.existsByCardNumber(currentCardNumber.toString());
     }
 
     @Override
     @Transactional
     public Long depositMoney(String cardNumber, Long money) {
-        long currentCardNumber = Long.parseLong(cardNumber);
-        User user = repository.findByCardNumber(Long.toString(currentCardNumber));
+        UnsignedLong currentCardNumber = UnsignedLong.valueOf(cardNumber);
+        User user = repository.findByCardNumber(currentCardNumber.toString());
         user.setMoney(user.getMoney() + money);
         return money;
     }
@@ -37,8 +38,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Long writeOffMoney(String cardNumber, Long money) throws IllegalStateException {
-        long currentCardNumber = Long.parseLong(cardNumber);
-        User user = repository.findByCardNumber(Long.toString(currentCardNumber));
+        UnsignedLong currentCardNumber = UnsignedLong.valueOf(cardNumber);
+        User user = repository.findByCardNumber(currentCardNumber.toString());
         long currentMoney = user.getMoney() - money;
         if (currentMoney < 0)
             throw new IllegalStateException("Not enough money to write-off");
