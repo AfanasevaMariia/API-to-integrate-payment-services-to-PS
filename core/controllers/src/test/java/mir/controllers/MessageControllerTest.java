@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ControllerTestConfiguration(controllers = MessageController.class)
 class MessageControllerTest {
 
-    /*
     @Autowired
     private MockMvc mockMvc;
 
@@ -69,6 +68,5 @@ class MessageControllerTest {
                 .getAll();
     }
 
-     */
 
 }

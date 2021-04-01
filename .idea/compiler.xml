@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="models" />
+        <module name="routing" />
+        <module name="lib" />
+        <module name="repositories" />
+        <module name="change" />
+        <module name="controllers" />
+        <module name="check" />
+        <module name="services" />
+        <module name="parsing" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="change" target="11" />
+      <module name="check" target="11" />
+      <module name="controllers" target="11" />
+      <module name="core" target="11" />
+      <module name="lib" target="11" />
+      <module name="models" target="11" />
+      <module name="parsing" target="11" />
+      <module name="repositories" target="11" />
+      <module name="routing" target="11" />
+      <module name="services" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="change" options="-parameters" />
+      <module name="check" options="-parameters" />
+      <module name="controllers" options="-parameters" />
+      <module name="lib" options="-parameters" />
+      <module name="models" options="-parameters" />
+      <module name="parsing" options="-parameters" />
+      <module name="repositories" options="-parameters" />
+      <module name="routing" options="-parameters" />
+      <module name="services" options="-parameters" />
+    </option>
+  </component>
+</project>

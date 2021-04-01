@@ -2,7 +2,17 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Mir.iml" filepath="$PROJECT_DIR$/.idea/Mir.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MIR-Cloud-Services.iml" filepath="$PROJECT_DIR$/.idea/MIR-Cloud-Services.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/change/change.iml" filepath="$PROJECT_DIR$/core/change/change.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/check/check.iml" filepath="$PROJECT_DIR$/core/check/check.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/controllers/controllers.iml" filepath="$PROJECT_DIR$/core/controllers/controllers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/lib/lib.iml" filepath="$PROJECT_DIR$/core/lib/lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/models/models.iml" filepath="$PROJECT_DIR$/core/models/models.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/parsing/parsing.iml" filepath="$PROJECT_DIR$/core/parsing/parsing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/repositories/repositories.iml" filepath="$PROJECT_DIR$/core/repositories/repositories.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/routing/routing.iml" filepath="$PROJECT_DIR$/core/routing/routing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/services/services.iml" filepath="$PROJECT_DIR$/core/services/services.iml" />
     </modules>
   </component>
 </project>
