@@ -4,7 +4,8 @@ public class Test {
 
     @org.junit.jupiter.api.Test
     public void myTest(){
-        UnsignedLong temp = UnsignedLong.valueOf("18446744073709551615");
+
+        var temp = System.getenv("DATASOURCE_USERNAME");
         System.out.println(temp);
     }
 }
