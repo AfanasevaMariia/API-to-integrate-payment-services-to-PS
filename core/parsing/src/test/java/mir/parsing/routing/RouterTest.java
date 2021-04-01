@@ -19,7 +19,7 @@ import java.io.IOException;
 class RouterTest {
 
     @Test
-    void getParsedMessage() throws IOException, ISOException {
+    void getParsedMessage() throws ISOException {
         // Fields: 3, 11, 12, 13;
         String encodedMessage = "080020380000000000009200000000010231200332";
         ParsedMessage parsedMessage = Router.getParsedMessage(encodedMessage);
@@ -54,58 +54,12 @@ class RouterTest {
     and is different form the hex of the parsedMessage.
      */
     @Test
-    void getEncodedMessageOfEditedParsedMessage() throws ISOException, IOException {
+    void getEncodedMessageOfEditedParsedMessageWithField_63() throws ISOException, IOException {
         // Fields: 3, 11, 12, 13;
         String initialEncodedMessage = "080020380000000000009200000000010231200332";
         ParsedMessage parsedMessage = Router.getParsedMessage(initialEncodedMessage);
         System.out.println("OLD PARSED_MESSAGE");
         System.out.println(parsedMessage);
-
-        // New field 6. Inserted into the middle of the others.
-        /*ParsedField newParsedField = new ParsedField();
-        newParsedField.setId(6);
-        newParsedField.setType("n");
-        newParsedField.setLengthMIP(12);
-        newParsedField.setContent("121212121212");*/ // 121212121212 in hex.
-
-        // New field 32 (n, 1-11, LL). Has an unfixed length LL.
-        // - Here the length of a number is twice less than its length according to the MIP (1 num = 1/2 byte).
-        /*ParsedField newParsedField = new ParsedField();
-        newParsedField.setId(32);
-        newParsedField.setType("n");
-        newParsedField.setLengthMIP(3);
-        newParsedField.setContent("0123");*/ // 0123 in hex.
-
-        // New field 48 (ans, 6-999, LLL). Has an unfixed length LLL.
-        /*ParsedField newParsedField = new ParsedField();
-        newParsedField.setId(48);
-        newParsedField.setType("ans");
-        newParsedField.setLengthMIP(9);
-        newParsedField.setContent("25363130390999999999");
-        // The 97th subfield of the 48th field.
-        ParsedElement newParsedElement = new ParsedElement();
-        newParsedElement.setId(97);
-        newParsedElement.setType("b");
-        newParsedElement.setLengthMIP(9);
-        newParsedElement.setContent("0999999999"); // 0999999999 in hex.
-        // Add to the parsedField.
-        newParsedField.addElement(newParsedElement);
-        newParsedField.setHasElements(true);*/
-
-        // New field 39 (an, 2)
-        // - Here the length of a number is equal to its length according to the MIP (1 num = 1 byte).
-        /*ParsedField newParsedField = new ParsedField();
-        newParsedField.setId(39);
-        newParsedField.setType("an");
-        newParsedField.setLengthMIP(2);
-        newParsedField.setContent("39"); // 3339 in hex*/
-
-        // New field 52 (b, 8)
-        /*ParsedField newParsedField = new ParsedField();
-        newParsedField.setId(52);
-        newParsedField.setType("b");
-        newParsedField.setLengthMIP(8);
-        newParsedField.setContent("88888888"); // 88888888 in hex.*/
 
         // New field 63 (ans, 23).
         //String probaMessage = "010000000000000000023030303023232323232323234D4D4D"; // +
@@ -140,6 +94,150 @@ class RouterTest {
 
         parsedMessage.addField(newParsedField);
         parsedMessage.setEdited(true);
+
+        System.out.println("NEW PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+        System.out.println();
+
+        // Comparison of the initial and getting encodedMessage.
+        String encodedMessageBack = Router.getEncodedMessage(parsedMessage);
+        System.out.println("initial encodedMessage = " + initialEncodedMessage);
+        System.out.println("encodedMessage\t\t   = " + encodedMessageBack);
+    }
+
+
+    @Test
+    void getEncodedMessageOfEditedParsedMessageWithField_6() throws ISOException, IOException {
+        // Fields: 3, 11, 12, 13;
+        String initialEncodedMessage = "080020380000000000009200000000010231200332";
+        ParsedMessage parsedMessage = Router.getParsedMessage(initialEncodedMessage);
+
+        System.out.println("OLD PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+
+        // New field 6. Inserted into the middle of the others.
+        ParsedField newParsedField = new ParsedField();
+        newParsedField.setId(6);
+        newParsedField.setType("n");
+        newParsedField.setLengthMIP(12);
+        newParsedField.setContent("121212121212"); // 121212121212 in hex.
+
+        System.out.println("NEW PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+        System.out.println();
+
+        // Comparison of the initial and getting encodedMessage.
+        String encodedMessageBack = Router.getEncodedMessage(parsedMessage);
+        System.out.println("initial encodedMessage = " + initialEncodedMessage);
+        System.out.println("encodedMessage\t\t   = " + encodedMessageBack);
+
+    }
+
+    @Test
+    void getEncodedMessageOfEditedParsedMessageWithField_32() throws ISOException, IOException {
+        // Fields: 3, 11, 12, 13;
+        String initialEncodedMessage = "080020380000000000009200000000010231200332";
+        ParsedMessage parsedMessage = Router.getParsedMessage(initialEncodedMessage);
+
+        System.out.println("OLD PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+
+        // New field 32 (n, 1-11, LL). Has an unfixed length LL.
+        // - Here the length of a number is twice less than its length according to the MIP (1 num = 1/2 byte).
+        ParsedField newParsedField = new ParsedField();
+        newParsedField.setId(32);
+        newParsedField.setType("n");
+        newParsedField.setLengthMIP(3);
+        newParsedField.setContent("0123"); // 0123 in hex.
+
+        System.out.println("NEW PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+        System.out.println();
+
+        // Comparison of the initial and getting encodedMessage.
+        String encodedMessageBack = Router.getEncodedMessage(parsedMessage);
+        System.out.println("initial encodedMessage = " + initialEncodedMessage);
+        System.out.println("encodedMessage\t\t   = " + encodedMessageBack);
+    }
+
+    @Test
+    void getEncodedMessageOfEditedParsedMessageWithField_48() throws ISOException, IOException {
+        // Fields: 3, 11, 12, 13;
+        String initialEncodedMessage = "080020380000000000009200000000010231200332";
+        ParsedMessage parsedMessage = Router.getParsedMessage(initialEncodedMessage);
+
+        System.out.println("OLD PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+
+        // New field 48 (ans, 6-999, LLL). Has an unfixed length LLL.
+        ParsedField newParsedField = new ParsedField();
+        newParsedField.setId(48);
+        newParsedField.setType("ans");
+        newParsedField.setLengthMIP(9);
+        newParsedField.setContent("25363130390999999999");
+        // The 97th subfield of the 48th field.
+        ParsedElement newParsedElement = new ParsedElement();
+        newParsedElement.setId(97);
+        newParsedElement.setType("b");
+        newParsedElement.setLengthMIP(9);
+        newParsedElement.setContent("0999999999"); // 0999999999 in hex.
+        // Add to the parsedField.
+        newParsedField.addElement(newParsedElement);
+        newParsedField.setHasElements(true);
+
+        System.out.println("NEW PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+        System.out.println();
+
+        // Comparison of the initial and getting encodedMessage.
+        String encodedMessageBack = Router.getEncodedMessage(parsedMessage);
+        System.out.println("initial encodedMessage = " + initialEncodedMessage);
+        System.out.println("encodedMessage\t\t   = " + encodedMessageBack);
+    }
+
+
+    @Test
+    void getEncodedMessageOfEditedParsedMessageWithField_39() throws ISOException, IOException {
+        // Fields: 3, 11, 12, 13;
+        String initialEncodedMessage = "080020380000000000009200000000010231200332";
+        ParsedMessage parsedMessage = Router.getParsedMessage(initialEncodedMessage);
+
+        System.out.println("OLD PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+
+        // New field 39 (an, 2)
+        // - Here the length of a number is equal to its length according to the MIP (1 num = 1 byte).
+        ParsedField newParsedField = new ParsedField();
+        newParsedField.setId(39);
+        newParsedField.setType("an");
+        newParsedField.setLengthMIP(2);
+        newParsedField.setContent("39"); // 3339 in hex
+
+        System.out.println("NEW PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+        System.out.println();
+
+        // Comparison of the initial and getting encodedMessage.
+        String encodedMessageBack = Router.getEncodedMessage(parsedMessage);
+        System.out.println("initial encodedMessage = " + initialEncodedMessage);
+        System.out.println("encodedMessage\t\t   = " + encodedMessageBack);
+    }
+
+    @Test
+    void getEncodedMessageOfEditedParsedMessageWithField_52() throws ISOException, IOException {
+        // Fields: 3, 11, 12, 13;
+        String initialEncodedMessage = "080020380000000000009200000000010231200332";
+        ParsedMessage parsedMessage = Router.getParsedMessage(initialEncodedMessage);
+
+        System.out.println("OLD PARSED_MESSAGE");
+        System.out.println(parsedMessage);
+
+        // New field 52 (b, 8)
+        ParsedField newParsedField = new ParsedField();
+        newParsedField.setId(52);
+        newParsedField.setType("b");
+        newParsedField.setLengthMIP(8);
+        newParsedField.setContent("88888888"); // 88888888 in hex.
 
         System.out.println("NEW PARSED_MESSAGE");
         System.out.println(parsedMessage);
