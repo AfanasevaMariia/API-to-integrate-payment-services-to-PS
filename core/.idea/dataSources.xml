@@ -8,5 +8,19 @@
       <jdbc-url>jdbc:postgresql://ec2-54-247-158-179.eu-west-1.compute.amazonaws.com:5432/d6kma2fiptkmls</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="acquirer@remote" uuid="85d9c4a7-894d-40c6-8727-d57df15773b1">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://ec2-34-254-69-72.eu-west-1.compute.amazonaws.com:5432/d7p6v3b2scefo5</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="platform@remote" uuid="c6d93e10-f59d-4114-9446-f06c53cd1ecd">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://ec2-54-220-35-19.eu-west-1.compute.amazonaws.com:5432/dd72j81g5a66uq</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
