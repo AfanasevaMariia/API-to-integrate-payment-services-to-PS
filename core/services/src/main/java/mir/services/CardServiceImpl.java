@@ -19,31 +19,16 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public Card registerCard(Card card) {
+    public Card registerCard(Card card) throws IllegalStateException {
+        if(repository.existsByNumber(card.getNumber()))
+            throw new IllegalStateException("Card already exists");
+
         return repository.save(card);
     }
 
     @Override
     public boolean existsByNumber(String number) {
         return repository.existsByNumber(number);
-    }
-
-    @Override
-    @Transactional
-    public String transferMoney(Card sender, String recipientCardNumber, Long amountOfMoney) {
-        if (!repository.existsByNumber(sender.getNumber()))
-            return "Sender card number doesn't exists";
-
-        if (!repository.existsByNumber(recipientCardNumber))
-            return "Recipient card number doesn't exists";
-
-        var currentSender = repository.findByNumber(sender.getNumber());
-        var currentRecipient = repository.findByNumber(recipientCardNumber);
-
-        currentSender.setMoney(currentSender.getMoney() - amountOfMoney);
-        currentRecipient.setMoney(currentRecipient.getMoney() + amountOfMoney);
-
-        return "Money transferred successfully";
     }
 
     @Override
